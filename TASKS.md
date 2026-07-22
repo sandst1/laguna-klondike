@@ -30,7 +30,7 @@
 - [x] 4.3 Implement `canFlipTableau(pile)` — check if top card is face-down
 - [x] 4.4 Implement `getValidMoves(state, card)` — returns list of valid drop targets for a card
 - [x] 4.5 Implement `getValidMovesForCard(state, cardId)` — resolves card by ID, returns targets
-- [ ] 4.6 Write unit tests for rules engine (vitest)
+- [x] 4.6 Write unit tests for rules engine (vitest)
 
 ## Phase 5: Game Logic — Game State
 - [ ] 5.1 Implement `dealGame()` — shuffle, deal 7 tableau piles, remaining to stock

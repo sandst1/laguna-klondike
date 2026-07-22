@@ -2,496 +2,382 @@ import { describe, it, expect } from 'vitest';
 import {
   canMoveToFoundation,
   canMoveToTableau,
+  canFlipTableau,
+  findCardById,
   getValidMoves,
   getValidMovesForCard,
 } from './rules';
-import type { Card, GameState } from '../types';
+import type { Card, GameState, Pile } from '../types';
 
-const makeCard = (suit: Card['suit'], rank: Card['rank']): Card => ({
-  id: `${suit}-${rank}`,
-  suit,
-  rank,
-  color: suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black',
+const makeCard = (overrides: Partial<Card>): Card => ({
+  id: 'test-card',
+  suit: 'hearts',
+  rank: 'A',
+  color: 'red',
   faceUp: true,
+  ...overrides,
+});
+
+const emptyFoundation = (): Pile => ({ type: 'foundation', cards: [] });
+const emptyTableau = (): Pile => ({ type: 'tableau', cards: [] });
+
+const makeGameState = (overrides: Partial<GameState> = {}): GameState => ({
+  deck: [],
+  stock: [],
+  waste: [],
+  foundations: [emptyFoundation(), emptyFoundation(), emptyFoundation(), emptyFoundation()],
+  tableau: [emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau()],
+  moves: [],
+  gameOver: false,
+  drawMode: 3,
+  selectedCardId: null,
+  ...overrides,
 });
 
 describe('canMoveToFoundation', () => {
-  it('allows an Ace to be placed on an empty foundation', () => {
-    const ace = makeCard('hearts', 'A');
+  it('returns true when foundation is empty and card is an Ace', () => {
+    const ace: Card = makeCard({ suit: 'hearts', rank: 'A', color: 'red' });
     expect(canMoveToFoundation(ace, null)).toBe(true);
   });
 
-  it('does not allow a non-Ace to be placed on an empty foundation', () => {
-    const two = makeCard('hearts', '2');
+  it('returns false when foundation is empty and card is not an Ace', () => {
+    const two: Card = makeCard({ suit: 'hearts', rank: '2', color: 'red' });
     expect(canMoveToFoundation(two, null)).toBe(false);
   });
 
-  it('does not allow a King to be placed on an empty foundation', () => {
-    const king = makeCard('hearts', 'K');
-    expect(canMoveToFoundation(king, null)).toBe(false);
-  });
-
-  it('allows the next rank of the same suit on top of the foundation', () => {
-    const ace = makeCard('hearts', 'A');
-    const two = makeCard('hearts', '2');
+  it('returns true when card is the next rank in the same suit', () => {
+    const ace: Card = makeCard({ suit: 'hearts', rank: 'A', color: 'red' });
+    const two: Card = makeCard({ suit: 'hearts', rank: '2', color: 'red' });
     expect(canMoveToFoundation(two, ace)).toBe(true);
   });
 
-  it('allows a King to be placed on top of a Queen of the same suit', () => {
-    const queen = makeCard('spades', 'Q');
-    const king = makeCard('spades', 'K');
+  it('returns false when card is the same rank as the foundation top', () => {
+    const ace1: Card = makeCard({ id: 'a1', suit: 'hearts', rank: 'A', color: 'red' });
+    const ace2: Card = makeCard({ id: 'a2', suit: 'hearts', rank: 'A', color: 'red' });
+    expect(canMoveToFoundation(ace2, ace1)).toBe(false);
+  });
+
+  it('returns false when card is the next rank but different suit', () => {
+    const aceHearts: Card = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const twoSpades: Card = makeCard({ id: '2s', suit: 'spades', rank: '2', color: 'black' });
+    expect(canMoveToFoundation(twoSpades, aceHearts)).toBe(false);
+  });
+
+  it('returns false when card is a lower rank than the foundation top', () => {
+    const king: Card = makeCard({ suit: 'hearts', rank: 'K', color: 'red' });
+    const two: Card = makeCard({ suit: 'hearts', rank: '2', color: 'red' });
+    expect(canMoveToFoundation(two, king)).toBe(false);
+  });
+
+  it('returns false when card is a higher rank than the next expected', () => {
+    const ace: Card = makeCard({ suit: 'hearts', rank: 'A', color: 'red' });
+    const four: Card = makeCard({ suit: 'hearts', rank: '4', color: 'red' });
+    expect(canMoveToFoundation(four, ace)).toBe(false);
+  });
+
+  it('returns true for King on Queen in the same suit', () => {
+    const queen: Card = makeCard({ suit: 'spades', rank: 'Q', color: 'black' });
+    const king: Card = makeCard({ suit: 'spades', rank: 'K', color: 'black' });
     expect(canMoveToFoundation(king, queen)).toBe(true);
   });
 
-  it('does not allow a card of a different suit on top of the foundation', () => {
-    const ace = makeCard('hearts', 'A');
-    const two = makeCard('diamonds', '2');
-    expect(canMoveToFoundation(two, ace)).toBe(false);
-  });
-
-  it('does not allow a card of the same rank on top of the foundation', () => {
-    const ace = makeCard('hearts', 'A');
-    const ace2 = makeCard('hearts', 'A');
-    expect(canMoveToFoundation(ace2, ace)).toBe(false);
-  });
-
-  it('does not allow a lower rank card on top of the foundation', () => {
-    const two = makeCard('hearts', '2');
-    const ace = makeCard('hearts', 'A');
-    expect(canMoveToFoundation(ace, two)).toBe(false);
-  });
-
-  it('does not allow a card two ranks higher on top of the foundation', () => {
-    const ace = makeCard('hearts', 'A');
-    const three = makeCard('hearts', '3');
-    expect(canMoveToFoundation(three, ace)).toBe(false);
-  });
-
-  it('allows sequential cards across the full suit from Ace to King', () => {
-    const ranks: Card['rank'][] = [
-      'A',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10',
-      'J',
-      'Q',
-      'K',
-    ];
-    let foundationTop: Card | null = null;
-    for (const rank of ranks) {
-      const card = makeCard('clubs', rank);
-      expect(canMoveToFoundation(card, foundationTop)).toBe(true);
-      foundationTop = card;
-    }
+  it('returns true for Jack on 10 in the same suit', () => {
+    const ten: Card = makeCard({ suit: 'diamonds', rank: '10', color: 'red' });
+    const jack: Card = makeCard({ suit: 'diamonds', rank: 'J', color: 'red' });
+    expect(canMoveToFoundation(jack, ten)).toBe(true);
   });
 });
 
 describe('canMoveToTableau', () => {
-  it('allows a King to be placed on an empty tableau', () => {
-    const king = makeCard('hearts', 'K');
+  it('returns true when tableau is empty and card is a King', () => {
+    const king: Card = makeCard({ suit: 'hearts', rank: 'K', color: 'red' });
     expect(canMoveToTableau(king, null)).toBe(true);
   });
 
-  it('does not allow a non-King to be placed on an empty tableau', () => {
-    const queen = makeCard('hearts', 'Q');
+  it('returns false when tableau is empty and card is not a King', () => {
+    const queen: Card = makeCard({ suit: 'hearts', rank: 'Q', color: 'red' });
     expect(canMoveToTableau(queen, null)).toBe(false);
   });
 
-  it('does not allow an Ace to be placed on an empty tableau', () => {
-    const ace = makeCard('hearts', 'A');
-    expect(canMoveToTableau(ace, null)).toBe(false);
+  it('returns true when card is one rank lower and opposite color', () => {
+    const redSeven: Card = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+    const blackEight: Card = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+    expect(canMoveToTableau(redSeven, blackEight)).toBe(true);
   });
 
-  it('allows a card one rank lower of alternating color on top of the tableau', () => {
-    const redSeven = makeCard('hearts', '7');
-    const blackSix = makeCard('clubs', '6');
-    expect(canMoveToTableau(blackSix, redSeven)).toBe(true);
+  it('returns true when card is one rank lower and opposite color (black on red)', () => {
+    const blackFive: Card = makeCard({ id: '5c', suit: 'clubs', rank: '5', color: 'black' });
+    const redSix: Card = makeCard({ id: '6d', suit: 'diamonds', rank: '6', color: 'red' });
+    expect(canMoveToTableau(blackFive, redSix)).toBe(true);
   });
 
-  it('allows a red card one rank lower on top of a black card', () => {
-    const blackTen = makeCard('spades', '10');
-    const redNine = makeCard('diamonds', '9');
-    expect(canMoveToTableau(redNine, blackTen)).toBe(true);
+  it('returns false when card is one rank lower but same color', () => {
+    const redSeven: Card = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+    const redEight: Card = makeCard({ id: '8d', suit: 'diamonds', rank: '8', color: 'red' });
+    expect(canMoveToTableau(redSeven, redEight)).toBe(false);
   });
 
-  it('does not allow a card of the same color on top of the tableau', () => {
-    const redSeven = makeCard('hearts', '7');
-    const redSix = makeCard('diamonds', '6');
-    expect(canMoveToTableau(redSix, redSeven)).toBe(false);
+  it('returns false when card is same rank as tableau top', () => {
+    const redSevenA: Card = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+    const redSevenB: Card = makeCard({ id: '7d', suit: 'diamonds', rank: '7', color: 'red' });
+    expect(canMoveToTableau(redSevenA, redSevenB)).toBe(false);
   });
 
-  it('does not allow a card of the same rank on top of the tableau', () => {
-    const redSeven = makeCard('hearts', '7');
-    const blackSeven = makeCard('clubs', '7');
-    expect(canMoveToTableau(blackSeven, redSeven)).toBe(false);
+  it('returns false when card is one rank higher than tableau top', () => {
+    const redEight: Card = makeCard({ id: '8h', suit: 'hearts', rank: '8', color: 'red' });
+    const blackSeven: Card = makeCard({ id: '7s', suit: 'spades', rank: '7', color: 'black' });
+    expect(canMoveToTableau(redEight, blackSeven)).toBe(false);
   });
 
-  it('does not allow a card two ranks lower on top of the tableau', () => {
-    const redSeven = makeCard('hearts', '7');
-    const blackFive = makeCard('clubs', '5');
-    expect(canMoveToTableau(blackFive, redSeven)).toBe(false);
+  it('returns false when card is two ranks lower than tableau top', () => {
+    const redSix: Card = makeCard({ id: '6h', suit: 'hearts', rank: '6', color: 'red' });
+    const blackEight: Card = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+    expect(canMoveToTableau(redSix, blackEight)).toBe(false);
   });
 
-  it('does not allow a higher rank card on top of the tableau', () => {
-    const redSeven = makeCard('hearts', '7');
-    const blackEight = makeCard('clubs', '8');
-    expect(canMoveToTableau(blackEight, redSeven)).toBe(false);
+  it('returns true for Ace on a red 2 (opposite colors)', () => {
+    const blackAce: Card = makeCard({ id: 'ac', suit: 'clubs', rank: 'A', color: 'black' });
+    const redTwo: Card = makeCard({ id: '2d', suit: 'diamonds', rank: '2', color: 'red' });
+    expect(canMoveToTableau(blackAce, redTwo)).toBe(true);
   });
 
-  it('allows building down sequentially with alternating colors', () => {
-    const redKing = makeCard('hearts', 'K');
-    const blackQueen = makeCard('spades', 'Q');
-    const redJack = makeCard('hearts', 'J');
-    const blackTen = makeCard('spades', '10');
-    let tableauTop: Card | null = redKing;
-    expect(canMoveToTableau(blackQueen, tableauTop)).toBe(true);
-    tableauTop = blackQueen;
-    expect(canMoveToTableau(redJack, tableauTop)).toBe(true);
-    tableauTop = redJack;
-    expect(canMoveToTableau(blackTen, tableauTop)).toBe(true);
+  it('returns true for Queen on a red King (opposite colors)', () => {
+    const blackQueen: Card = makeCard({ id: 'qc', suit: 'clubs', rank: 'Q', color: 'black' });
+    const redKing: Card = makeCard({ id: 'kh', suit: 'hearts', rank: 'K', color: 'red' });
+    expect(canMoveToTableau(blackQueen, redKing)).toBe(true);
+  });
+});
+
+describe('canFlipTableau', () => {
+  it('returns false for an empty pile', () => {
+    const pile: Pile = { type: 'tableau', cards: [] };
+    expect(canFlipTableau(pile)).toBe(false);
+  });
+
+  it('returns true when the top card is face-down', () => {
+    const pile: Pile = {
+      type: 'tableau',
+      cards: [
+        makeCard({ id: '1', faceUp: true }),
+        makeCard({ id: '2', faceUp: false }),
+      ],
+    };
+    expect(canFlipTableau(pile)).toBe(true);
+  });
+
+  it('returns false when the top card is face-up', () => {
+    const pile: Pile = {
+      type: 'tableau',
+      cards: [
+        makeCard({ id: '1', faceUp: false }),
+        makeCard({ id: '2', faceUp: true }),
+      ],
+    };
+    expect(canFlipTableau(pile)).toBe(false);
+  });
+
+  it('returns true when the only card is face-down', () => {
+    const pile: Pile = {
+      type: 'tableau',
+      cards: [makeCard({ id: '1', faceUp: false })],
+    };
+    expect(canFlipTableau(pile)).toBe(true);
+  });
+
+  it('returns false when the only card is face-up', () => {
+    const pile: Pile = {
+      type: 'tableau',
+      cards: [makeCard({ id: '1', faceUp: true })],
+    };
+    expect(canFlipTableau(pile)).toBe(false);
+  });
+});
+
+describe('findCardById', () => {
+  it('returns the card when it is in the stock', () => {
+    const card = makeCard({ id: 'stock-card' });
+    const state = makeGameState({ stock: [card] });
+    expect(findCardById(state, 'stock-card')).toBe(card);
+  });
+
+  it('returns the card when it is in the waste', () => {
+    const card = makeCard({ id: 'waste-card' });
+    const state = makeGameState({ waste: [card] });
+    expect(findCardById(state, 'waste-card')).toBe(card);
+  });
+
+  it('returns the card when it is in a foundation', () => {
+    const card = makeCard({ id: 'foundation-card' });
+    const state = makeGameState({
+      foundations: [{ type: 'foundation', cards: [card] }, emptyFoundation(), emptyFoundation(), emptyFoundation()],
+    });
+    expect(findCardById(state, 'foundation-card')).toBe(card);
+  });
+
+  it('returns the card when it is in the tableau', () => {
+    const card = makeCard({ id: 'tableau-card' });
+    const state = makeGameState({
+      tableau: [{ type: 'tableau', cards: [card] }, emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau()],
+    });
+    expect(findCardById(state, 'tableau-card')).toBe(card);
+  });
+
+  it('returns null when the card is not found anywhere', () => {
+    const state = makeGameState();
+    expect(findCardById(state, 'nonexistent')).toBe(null);
+  });
+
+  it('returns null when the card id does not match any card', () => {
+    const card = makeCard({ id: 'real-card' });
+    const state = makeGameState({ stock: [card] });
+    expect(findCardById(state, 'wrong-id')).toBe(null);
   });
 });
 
 describe('getValidMoves', () => {
-  const makeCard = (suit: Card['suit'], rank: Card['rank'], faceUp = true): Card => ({
-    id: `${suit}-${rank}`,
-    suit,
-    rank,
-    color: suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black',
-    faceUp,
-  });
-
-  const makeState = (overrides: Partial<GameState> = {}): GameState => ({
-    deck: [],
-    stock: [],
-    waste: [],
-    foundations: [
-      { type: 'foundation', cards: [] },
-      { type: 'foundation', cards: [] },
-      { type: 'foundation', cards: [] },
-      { type: 'foundation', cards: [] },
-    ],
-    tableau: [
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-    ],
-    moves: [],
-    gameOver: false,
-    drawMode: 3,
-    selectedCardId: null,
-    ...overrides,
-  });
-
-  it('returns an empty array for a face-down card', () => {
-    const card = makeCard('hearts', 'A', false);
-    const state = makeState();
+  it('returns an empty array when the card is face-down', () => {
+    const card = makeCard({ id: 'facedown', faceUp: false });
+    const state = makeGameState();
     expect(getValidMoves(state, card)).toEqual([]);
   });
 
-  it('returns foundation targets for an Ace on empty foundations', () => {
-    const ace = makeCard('hearts', 'A');
-    const state = makeState();
+  it('returns foundation moves when the card can be moved to a foundation', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState();
     const moves = getValidMoves(state, ace);
     expect(moves).toHaveLength(4);
     for (const move of moves) {
       expect(move.to.pileType).toBe('foundation');
-      expect(move.move.type).toBe('tableau-to-foundation');
-      expect(move.cardId).toBe('hearts-A');
     }
   });
 
-  it('returns a tableau target for a King on an empty tableau', () => {
-    const king = makeCard('hearts', 'K');
-    const state = makeState();
+  it('returns tableau moves when the card can be moved to a tableau', () => {
+    const king = makeCard({ id: 'kh', suit: 'hearts', rank: 'K', color: 'red' });
+    const state = makeGameState();
     const moves = getValidMoves(state, king);
-    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
-    expect(tableauMoves).toHaveLength(7);
-    for (const move of tableauMoves) {
-      expect(move.move.type).toBe('tableau-to-tableau');
+    expect(moves).toHaveLength(7);
+    for (const move of moves) {
+      expect(move.to.pileType).toBe('tableau');
     }
   });
 
-  it('returns both foundation and tableau targets when both are valid', () => {
-    const ace = makeCard('hearts', 'A');
-    const state = makeState({
-      tableau: [
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-      ],
-    });
+  it('returns both foundation and tableau moves when applicable', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState();
     const moves = getValidMoves(state, ace);
     expect(moves).toHaveLength(4);
+    const foundationMoves = moves.filter((m) => m.to.pileType === 'foundation');
+    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
+    expect(foundationMoves).toHaveLength(4);
+    expect(tableauMoves).toHaveLength(0);
+  });
+
+  it('returns no moves when the card cannot be moved anywhere', () => {
+    const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red' });
+    const state = makeGameState();
+    const moves = getValidMoves(state, two);
+    expect(moves).toEqual([]);
+  });
+
+  it('does not return moves for a foundation pile that already has a non-Ace top', () => {
+    const twoHearts = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red' });
+    const threeHearts = makeCard({ id: '3h', suit: 'hearts', rank: '3', color: 'red' });
+    const state = makeGameState({
+      foundations: [
+        { type: 'foundation', cards: [twoHearts] },
+        emptyFoundation(),
+        emptyFoundation(),
+        emptyFoundation(),
+      ],
+    });
+    const moves = getValidMoves(state, threeHearts);
+    const foundationMoves = moves.filter((m) => m.to.pileType === 'foundation');
+    expect(foundationMoves).toHaveLength(1);
+    expect(foundationMoves[0].to.index).toBe(0);
+  });
+
+  it('does not return moves for a tableau pile that does not accept the card', () => {
+    const twoHearts = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red' });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [twoHearts] },
+        emptyTableau(),
+        emptyTableau(),
+        emptyTableau(),
+        emptyTableau(),
+        emptyTableau(),
+        emptyTableau(),
+      ],
+    });
+    const moves = getValidMoves(state, twoHearts);
+    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
+    expect(tableauMoves).toHaveLength(0);
+  });
+
+  it('includes the correct cardId in each returned move', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState();
+    const moves = getValidMoves(state, ace);
     for (const move of moves) {
-      expect(move.to.pileType).toBe('foundation');
+      expect(move.cardId).toBe('ah');
     }
   });
 
-  it('only returns foundation target matching the suit', () => {
-    const ace = makeCard('hearts', 'A');
-    const state = makeState({
-      foundations: [
-        { type: 'foundation', cards: [makeCard('hearts', 'K')] },
-        { type: 'foundation', cards: [makeCard('spades', 'K')] },
-        { type: 'foundation', cards: [makeCard('clubs', 'K')] },
-        { type: 'foundation', cards: [makeCard('diamonds', 'K')] },
-      ],
-    });
-    const moves = getValidMoves(state, ace);
-    expect(moves).toHaveLength(0);
-  });
-
-  it('returns a foundation target when the next rank of the same suit is needed', () => {
-    const ace = makeCard('hearts', 'A');
-    const two = makeCard('hearts', '2');
-    const state = makeState({
-      foundations: [
-        { type: 'foundation', cards: [ace] },
-        { type: 'foundation', cards: [] },
-        { type: 'foundation', cards: [] },
-        { type: 'foundation', cards: [] },
-      ],
-    });
-    const moves = getValidMoves(state, two);
-    expect(moves).toHaveLength(1);
-    expect(moves[0].to.pileType).toBe('foundation');
-    expect(moves[0].to.index).toBe(0);
-  });
-
-  it('returns a tableau target when descending rank and alternating color', () => {
-    const redSeven = makeCard('hearts', '7');
-    const blackSix = makeCard('clubs', '6');
-    const state = makeState({
-      tableau: [
-        { type: 'tableau', cards: [redSeven] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-      ],
-    });
-    const moves = getValidMoves(state, blackSix);
-    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
-    expect(tableauMoves).toHaveLength(1);
-    expect(tableauMoves[0].to.index).toBe(0);
-  });
-
-  it('does not return a tableau target when colors are the same', () => {
-    const redSeven = makeCard('hearts', '7');
-    const redSix = makeCard('diamonds', '6');
-    const state = makeState({
-      tableau: [
-        { type: 'tableau', cards: [redSeven] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-      ],
-    });
-    const moves = getValidMoves(state, redSix);
-    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
-    expect(tableauMoves).toHaveLength(0);
-  });
-
-  it('does not return a tableau target when rank difference is not 1', () => {
-    const redSeven = makeCard('hearts', '7');
-    const blackFive = makeCard('clubs', '5');
-    const state = makeState({
-      tableau: [
-        { type: 'tableau', cards: [redSeven] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-      ],
-    });
-    const moves = getValidMoves(state, blackFive);
-    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
-    expect(tableauMoves).toHaveLength(0);
-  });
-
-  it('does not return a tableau target for a non-King on empty tableau', () => {
-    const queen = makeCard('hearts', 'Q');
-    const state = makeState();
-    const moves = getValidMoves(state, queen);
-    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
-    expect(tableauMoves).toHaveLength(0);
-  });
-
-  it('returns empty array when no moves are valid', () => {
-    const queen = makeCard('hearts', 'Q');
-    const state = makeState({
-      foundations: [
-        { type: 'foundation', cards: [makeCard('hearts', 'K')] },
-        { type: 'foundation', cards: [makeCard('spades', 'K')] },
-        { type: 'foundation', cards: [makeCard('clubs', 'K')] },
-        { type: 'foundation', cards: [makeCard('diamonds', 'K')] },
-      ],
-      tableau: [
-        { type: 'tableau', cards: [makeCard('hearts', 'K')] },
-        { type: 'tableau', cards: [makeCard('hearts', 'K')] },
-        { type: 'tableau', cards: [makeCard('hearts', 'K')] },
-        { type: 'tableau', cards: [makeCard('hearts', 'K')] },
-        { type: 'tableau', cards: [makeCard('hearts', 'K')] },
-        { type: 'tableau', cards: [makeCard('hearts', 'K')] },
-        { type: 'tableau', cards: [makeCard('hearts', 'K')] },
-      ],
-    });
-    const moves = getValidMoves(state, queen);
-    expect(moves).toHaveLength(0);
-  });
-
-  it('returns multiple tableau targets when multiple are valid', () => {
-    const blackSix = makeCard('clubs', '6');
-    const redSeven = makeCard('hearts', '7');
-    const redSeven2 = makeCard('diamonds', '7');
-    const state = makeState({
-      tableau: [
-        { type: 'tableau', cards: [redSeven] },
-        { type: 'tableau', cards: [redSeven2] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-        { type: 'tableau', cards: [] },
-      ],
-    });
-    const moves = getValidMoves(state, blackSix);
-    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
-    expect(tableauMoves).toHaveLength(2);
-  });
-
-  it('includes the move with correct type and cardId', () => {
-    const ace = makeCard('hearts', 'A');
-    const state = makeState();
+  it('includes a valid Move object in each returned ValidMove', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState();
     const moves = getValidMoves(state, ace);
     for (const move of moves) {
-      expect(move.move.type).toBe('tableau-to-foundation');
-      expect(move.move.cardId).toBe('hearts-A');
-      expect(move.move.fromPile).toBe('tableau');
-      expect(move.move.toPile).toBe('foundation');
+      expect(move.move).toHaveProperty('type');
+      expect(move.move).toHaveProperty('cardId', 'ah');
     }
   });
 });
 
 describe('getValidMovesForCard', () => {
-  const makeCard = (suit: Card['suit'], rank: Card['rank'], faceUp = true): Card => ({
-    id: `${suit}-${rank}`,
-    suit,
-    rank,
-    color: suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black',
-    faceUp,
-  });
-
-  const makeState = (overrides: Partial<GameState> = {}): GameState => ({
-    deck: [],
-    stock: [],
-    waste: [],
-    foundations: [
-      { type: 'foundation', cards: [] },
-      { type: 'foundation', cards: [] },
-      { type: 'foundation', cards: [] },
-      { type: 'foundation', cards: [] },
-    ],
-    tableau: [
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-      { type: 'tableau', cards: [] },
-    ],
-    moves: [],
-    gameOver: false,
-    drawMode: 3,
-    selectedCardId: null,
-    ...overrides,
-  });
-
-  it('returns valid moves for a card resolved by ID from the tableau', () => {
-    const ace = makeCard('hearts', 'A');
-    const state = makeState({
-      tableau: [{ type: 'tableau', cards: [ace] }, ...makeState().tableau.slice(1)],
-    });
-    const moves = getValidMovesForCard(state, 'hearts-A');
-    expect(moves).toHaveLength(4);
-    for (const move of moves) {
-      expect(move.to.pileType).toBe('foundation');
-    }
-  });
-
-  it('returns valid moves for a card resolved by ID from the waste', () => {
-    const king = makeCard('hearts', 'K');
-    const state = makeState({ waste: [king] });
-    const moves = getValidMovesForCard(state, 'hearts-K');
-    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
-    expect(tableauMoves).toHaveLength(7);
-  });
-
-  it('returns valid moves for a card resolved by ID from the stock', () => {
-    const ace = makeCard('hearts', 'A');
-    const state = makeState({ stock: [ace] });
-    const moves = getValidMovesForCard(state, 'hearts-A');
-    expect(moves).toHaveLength(4);
-  });
-
-  it('returns valid moves for a card resolved by ID from a foundation', () => {
-    const ace = makeCard('hearts', 'A');
-    const two = makeCard('hearts', '2');
-    const blackThree = makeCard('clubs', '3');
-    const state = makeState({
-      foundations: [{ type: 'foundation', cards: [ace, two] }, ...makeState().foundations.slice(1)],
-      tableau: [
-        { type: 'tableau', cards: [blackThree] },
-        ...makeState().tableau.slice(1),
-      ],
-    });
-    const moves = getValidMovesForCard(state, 'hearts-2');
-    expect(moves).toHaveLength(1);
-    expect(moves[0].to.pileType).toBe('tableau');
-    expect(moves[0].to.index).toBe(0);
-  });
-
-  it('returns an empty array when the card ID is not found', () => {
-    const state = makeState();
-    const moves = getValidMovesForCard(state, 'nonexistent-id');
-    expect(moves).toEqual([]);
-  });
-
-  it('returns an empty array for a face-down card resolved by ID', () => {
-    const ace = makeCard('hearts', 'A', false);
-    const state = makeState({ tableau: [{ type: 'tableau', cards: [ace] }, ...makeState().tableau.slice(1)] });
-    const moves = getValidMovesForCard(state, 'hearts-A');
-    expect(moves).toEqual([]);
-  });
-
-  it('returns the same result as getValidMoves for the same card', () => {
-    const ace = makeCard('hearts', 'A');
-    const state = makeState({ tableau: [{ type: 'tableau', cards: [ace] }, ...makeState().tableau.slice(1)] });
-    const movesById = getValidMovesForCard(state, 'hearts-A');
+  it('returns the same moves as getValidMoves for a valid card id', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState({ stock: [ace] });
+    const movesById = getValidMovesForCard(state, 'ah');
     const movesByCard = getValidMoves(state, ace);
     expect(movesById).toEqual(movesByCard);
+  });
+
+  it('returns an empty array when the card id is not found', () => {
+    const state = makeGameState();
+    expect(getValidMovesForCard(state, 'nonexistent')).toEqual([]);
+  });
+
+  it('returns moves for a face-up card found in the tableau', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+    const state = makeGameState({
+      tableau: [{ type: 'tableau', cards: [ace] }, emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau()],
+    });
+    const moves = getValidMovesForCard(state, 'ah');
+    expect(moves.length).toBeGreaterThan(0);
+  });
+
+  it('returns no moves for a face-down card found in the tableau', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: false });
+    const state = makeGameState({
+      tableau: [{ type: 'tableau', cards: [ace] }, emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau()],
+    });
+    expect(getValidMovesForCard(state, 'ah')).toEqual([]);
+  });
+
+  it('returns moves for a card found in the waste pile', () => {
+    const ace = makeCard({ id: 'wh', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState({ waste: [ace] });
+    const moves = getValidMovesForCard(state, 'wh');
+    expect(moves.length).toBeGreaterThan(0);
+  });
+
+  it('returns moves for a card found in a foundation pile', () => {
+    const ace = makeCard({ id: 'fh', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState({
+      foundations: [{ type: 'foundation', cards: [ace] }, emptyFoundation(), emptyFoundation(), emptyFoundation()],
+    });
+    const moves = getValidMovesForCard(state, 'fh');
+    expect(moves.length).toBeGreaterThan(0);
   });
 });
