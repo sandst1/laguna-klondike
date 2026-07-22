@@ -229,6 +229,36 @@ export function moveCard(state: GameState, move: Move): GameState {
   }
 }
 
+export function flipTableauCard(state: GameState, index: number): GameState {
+  if (index < 0 || index >= state.tableau.length) {
+    return state;
+  }
+
+  const pile = state.tableau[index];
+  if (pile.cards.length === 0) {
+    return state;
+  }
+
+  const topCard = pile.cards[pile.cards.length - 1];
+  if (topCard.faceUp) {
+    return state;
+  }
+
+  const newTableau = state.tableau.map((p, i) => {
+    if (i === index) {
+      const newCards = [...p.cards];
+      newCards[newCards.length - 1] = { ...newCards[newCards.length - 1], faceUp: true };
+      return { ...p, cards: newCards };
+    }
+    return p;
+  });
+
+  return {
+    ...state,
+    tableau: newTableau,
+  };
+}
+
 export function drawFromStock(state: GameState): GameState {
   const { stock, waste, drawMode, moves } = state;
 

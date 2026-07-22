@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dealGame, drawFromStock, moveCard } from './game';
+import { dealGame, drawFromStock, flipTableauCard, moveCard } from './game';
 import { createDeck } from './deck';
 
 describe('dealGame', () => {
@@ -392,6 +392,158 @@ describe('drawFromStock', () => {
     expect(result.drawMode).toBe(1);
     expect(result.gameOver).toBe(false);
     expect(result.selectedCardId).toBe('some-card');
+  });
+});
+
+describe('flipTableauCard', () => {
+  const makeGameState = (overrides: Partial<import('../types').GameState> = {}) => ({
+    deck: [],
+    stock: [],
+    waste: [],
+    foundations: [
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+    ],
+    tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
+    moves: [],
+    gameOver: false,
+    drawMode: 3,
+    selectedCardId: null,
+    ...overrides,
+  });
+
+  const makeCard = (overrides: Partial<import('../types').Card>): import('../types').Card => ({
+    id: 'test-card',
+    suit: 'hearts',
+    rank: 'A',
+    color: 'red',
+    faceUp: false,
+    ...overrides,
+  });
+
+  it('flips the top face-down card in the specified tableau pile', () => {
+    const faceDown = makeCard({ id: 'fd', faceUp: false });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceDown] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = flipTableauCard(state, 0);
+    expect(result.tableau[0].cards[0].faceUp).toBe(true);
+  });
+
+  it('flips only the top card, leaving other cards face-down', () => {
+    const faceDown1 = makeCard({ id: 'fd1', faceUp: false });
+    const faceDown2 = makeCard({ id: 'fd2', faceUp: false });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceDown1, faceDown2] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = flipTableauCard(state, 0);
+    expect(result.tableau[0].cards[0].faceUp).toBe(false);
+    expect(result.tableau[0].cards[1].faceUp).toBe(true);
+  });
+
+  it('does not flip when the top card is already face-up', () => {
+    const faceUp = makeCard({ id: 'fu', faceUp: true });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceUp] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = flipTableauCard(state, 0);
+    expect(result.tableau[0].cards[0].faceUp).toBe(true);
+  });
+
+  it('returns the same state when the pile is empty', () => {
+    const state = makeGameState();
+    const result = flipTableauCard(state, 0);
+    expect(result).toBe(state);
+  });
+
+  it('returns the same state when the index is out of bounds', () => {
+    const state = makeGameState();
+    expect(flipTableauCard(state, -1)).toBe(state);
+    expect(flipTableauCard(state, 7)).toBe(state);
+  });
+
+  it('does not mutate the original state', () => {
+    const faceDown = makeCard({ id: 'fd', faceUp: false });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceDown] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    flipTableauCard(state, 0);
+    expect(state.tableau[0].cards[0].faceUp).toBe(false);
+  });
+
+  it('preserves card properties (suit, rank, color, id) when flipping', () => {
+    const faceDown = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red', faceUp: false });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceDown] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = flipTableauCard(state, 0);
+    const flipped = result.tableau[0].cards[0];
+    expect(flipped.id).toBe('7h');
+    expect(flipped.suit).toBe('hearts');
+    expect(flipped.rank).toBe('7');
+    expect(flipped.color).toBe('red');
+    expect(flipped.faceUp).toBe(true);
+  });
+
+  it('flips the correct pile when multiple piles have face-down cards', () => {
+    const faceDown1 = makeCard({ id: 'fd1', faceUp: false });
+    const faceDown2 = makeCard({ id: 'fd2', faceUp: false });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceDown1] },
+        { type: 'tableau', cards: [faceDown2] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = flipTableauCard(state, 1);
+    expect(result.tableau[0].cards[0].faceUp).toBe(false);
+    expect(result.tableau[1].cards[0].faceUp).toBe(true);
   });
 });
 
