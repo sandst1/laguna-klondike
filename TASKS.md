@@ -12,7 +12,7 @@
 - [x] 2.1 Define `Suit`, `Rank`, `Color` types
 - [x] 2.2 Define `Card` interface
 - [x] 2.3 Define `PileType`, `Pile` interface
-- [ ] 2.4 Define `GameState` interface (deck, stock, waste, foundations, tableau, moves, gameOver, drawMode, selectedCardId)
+- [x] 2.4 Define `GameState` interface (deck, stock, waste, foundations, tableau, moves, gameOver, drawMode, selectedCardId)
 - [ ] 2.5 Define `Move` discriminated union
 - [ ] 2.6 Run `tsc --noEmit` to verify types compile
 

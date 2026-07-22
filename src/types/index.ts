@@ -31,3 +31,24 @@ export interface Pile {
   type: PileType;
   cards: Card[];
 }
+
+export type DrawMode = 1 | 3;
+
+export interface Move {
+  type: string;
+  fromPile: PileType;
+  toPile: PileType;
+  cardId: string;
+}
+
+export interface GameState {
+  deck: Card[];
+  stock: Card[];
+  waste: Card[];
+  foundations: Pile[];
+  tableau: Pile[];
+  moves: Move[];
+  gameOver: boolean;
+  drawMode: DrawMode;
+  selectedCardId: string | null;
+}
