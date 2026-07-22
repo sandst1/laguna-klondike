@@ -306,6 +306,13 @@ export function autoMoveToFoundation(state: GameState, card: Card): GameState {
   return state;
 }
 
+export function selectCard(state: GameState, cardId: string | null): GameState {
+  return {
+    ...state,
+    selectedCardId: cardId,
+  };
+}
+
 export function drawFromStock(state: GameState): GameState {
   const { stock, waste, drawMode, moves } = state;
 
