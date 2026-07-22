@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dealGame, drawFromStock } from './game';
+import { dealGame, drawFromStock, moveCard } from './game';
 import { createDeck } from './deck';
 
 describe('dealGame', () => {
@@ -392,5 +392,424 @@ describe('drawFromStock', () => {
     expect(result.drawMode).toBe(1);
     expect(result.gameOver).toBe(false);
     expect(result.selectedCardId).toBe('some-card');
+  });
+});
+
+describe('moveCard', () => {
+  const makeGameState = (overrides: Partial<import('../types').GameState> = {}) => ({
+    deck: [],
+    stock: [],
+    waste: [],
+    foundations: [
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+    ],
+    tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
+    moves: [],
+    gameOver: false,
+    drawMode: 3,
+    selectedCardId: null,
+    ...overrides,
+  });
+
+  const makeCard = (overrides: Partial<import('../types').Card>): import('../types').Card => ({
+    id: 'test-card',
+    suit: 'hearts',
+    rank: 'A',
+    color: 'red',
+    faceUp: true,
+    ...overrides,
+  });
+
+  describe('tableau-to-tableau', () => {
+    it('moves a card from one tableau pile to the next tableau pile', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [redSeven] },
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(0);
+      expect(result.tableau[1].cards).toHaveLength(2);
+      expect(result.tableau[1].cards[1].id).toBe('7h');
+    });
+
+    it('does not mutate the original state', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [redSeven] },
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        cardId: '7h',
+      };
+      moveCard(state, move);
+      expect(state.tableau[0].cards).toHaveLength(1);
+      expect(state.tableau[1].cards).toHaveLength(1);
+    });
+
+    it('adds the move to the moves array', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [redSeven] },
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.moves).toHaveLength(1);
+      expect(result.moves[0]).toEqual(move);
+    });
+
+    it('returns the same state when the card is not found in any tableau', () => {
+      const state = makeGameState();
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        cardId: 'nonexistent',
+      };
+      const result = moveCard(state, move);
+      expect(result).toBe(state);
+    });
+  });
+
+  describe('tableau-to-foundation', () => {
+    it('moves a card from tableau to foundation', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [ace] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-foundation' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'foundation' as const,
+        cardId: 'ah',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(0);
+      expect(result.foundations[0].cards).toHaveLength(1);
+      expect(result.foundations[0].cards[0].id).toBe('ah');
+    });
+
+    it('moves a card to the correct foundation when one already has cards', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [two] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+        foundations: [
+          { type: 'foundation', cards: [ace] },
+          { type: 'foundation', cards: [] },
+          { type: 'foundation', cards: [] },
+          { type: 'foundation', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-foundation' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'foundation' as const,
+        cardId: '2h',
+      };
+      const result = moveCard(state, move);
+      expect(result.foundations[0].cards).toHaveLength(2);
+      expect(result.foundations[0].cards[1].id).toBe('2h');
+    });
+
+    it('does not mutate the original state', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [ace] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-foundation' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'foundation' as const,
+        cardId: 'ah',
+      };
+      moveCard(state, move);
+      expect(state.tableau[0].cards).toHaveLength(1);
+      expect(state.foundations[0].cards).toHaveLength(0);
+    });
+
+    it('returns the same state when the card is not found in any tableau', () => {
+      const state = makeGameState();
+      const move = {
+        type: 'tableau-to-foundation' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'foundation' as const,
+        cardId: 'nonexistent',
+      };
+      const result = moveCard(state, move);
+      expect(result).toBe(state);
+    });
+  });
+
+  describe('waste-to-tableau', () => {
+    it('moves a card from waste to tableau', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        waste: [redSeven],
+        tableau: [
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'waste-to-tableau' as const,
+        toPile: 'tableau' as const,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.waste).toHaveLength(0);
+      expect(result.tableau[0].cards).toHaveLength(2);
+      expect(result.tableau[0].cards[1].id).toBe('7h');
+    });
+
+    it('does not mutate the original state', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        waste: [redSeven],
+        tableau: [
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'waste-to-tableau' as const,
+        toPile: 'tableau' as const,
+        cardId: '7h',
+      };
+      moveCard(state, move);
+      expect(state.waste).toHaveLength(1);
+      expect(state.tableau[0].cards).toHaveLength(1);
+    });
+
+    it('returns the same state when the card is not found in waste', () => {
+      const state = makeGameState();
+      const move = {
+        type: 'waste-to-tableau' as const,
+        toPile: 'tableau' as const,
+        cardId: 'nonexistent',
+      };
+      const result = moveCard(state, move);
+      expect(result).toBe(state);
+    });
+  });
+
+  describe('waste-to-foundation', () => {
+    it('moves a card from waste to foundation', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const state = makeGameState({
+        waste: [ace],
+      });
+      const move = {
+        type: 'waste-to-foundation' as const,
+        cardId: 'ah',
+      };
+      const result = moveCard(state, move);
+      expect(result.waste).toHaveLength(0);
+      expect(result.foundations[0].cards).toHaveLength(1);
+      expect(result.foundations[0].cards[0].id).toBe('ah');
+    });
+
+    it('moves a card to the correct foundation when one already has cards', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red' });
+      const state = makeGameState({
+        waste: [two],
+        foundations: [
+          { type: 'foundation', cards: [ace] },
+          { type: 'foundation', cards: [] },
+          { type: 'foundation', cards: [] },
+          { type: 'foundation', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'waste-to-foundation' as const,
+        cardId: '2h',
+      };
+      const result = moveCard(state, move);
+      expect(result.foundations[0].cards).toHaveLength(2);
+      expect(result.foundations[0].cards[1].id).toBe('2h');
+    });
+
+    it('does not mutate the original state', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const state = makeGameState({
+        waste: [ace],
+      });
+      const move = {
+        type: 'waste-to-foundation' as const,
+        cardId: 'ah',
+      };
+      moveCard(state, move);
+      expect(state.waste).toHaveLength(1);
+      expect(state.foundations[0].cards).toHaveLength(0);
+    });
+
+    it('returns the same state when the card is not found in waste', () => {
+      const state = makeGameState();
+      const move = {
+        type: 'waste-to-foundation' as const,
+        cardId: 'nonexistent',
+      };
+      const result = moveCard(state, move);
+      expect(result).toBe(state);
+    });
+  });
+
+  describe('stock-to-waste', () => {
+    it('moves a card from stock to waste, flipping it face-up', () => {
+      const card = makeCard({ id: 'stock-card', faceUp: false });
+      const state = makeGameState({
+        stock: [card],
+      });
+      const move = {
+        type: 'stock-to-waste' as const,
+        cardId: 'stock-card',
+      };
+      const result = moveCard(state, move);
+      expect(result.stock).toHaveLength(0);
+      expect(result.waste).toHaveLength(1);
+      expect(result.waste[0].id).toBe('stock-card');
+      expect(result.waste[0].faceUp).toBe(true);
+    });
+
+    it('does not mutate the original state', () => {
+      const card = makeCard({ id: 'stock-card', faceUp: false });
+      const state = makeGameState({
+        stock: [card],
+      });
+      const move = {
+        type: 'stock-to-waste' as const,
+        cardId: 'stock-card',
+      };
+      moveCard(state, move);
+      expect(state.stock).toHaveLength(1);
+      expect(state.waste).toHaveLength(0);
+    });
+
+    it('returns the same state when the card is not found in stock', () => {
+      const state = makeGameState();
+      const move = {
+        type: 'stock-to-waste' as const,
+        cardId: 'nonexistent',
+      };
+      const result = moveCard(state, move);
+      expect(result).toBe(state);
+    });
+  });
+
+  describe('recycle-waste', () => {
+    it('moves all waste cards back to stock, flipping them face-down', () => {
+      const card1 = makeCard({ id: '1', faceUp: true });
+      const card2 = makeCard({ id: '2', faceUp: true });
+      const state = makeGameState({
+        waste: [card1, card2],
+      });
+      const move = { type: 'recycle-waste' as const };
+      const result = moveCard(state, move);
+      expect(result.waste).toHaveLength(0);
+      expect(result.stock).toHaveLength(2);
+      expect(result.stock[0].id).toBe('1');
+      expect(result.stock[1].id).toBe('2');
+      for (const card of result.stock) {
+        expect(card.faceUp).toBe(false);
+      }
+    });
+
+    it('does not mutate the original state', () => {
+      const card1 = makeCard({ id: '1', faceUp: true });
+      const card2 = makeCard({ id: '2', faceUp: true });
+      const state = makeGameState({
+        waste: [card1, card2],
+      });
+      const move = { type: 'recycle-waste' as const };
+      moveCard(state, move);
+      expect(state.waste).toHaveLength(2);
+      expect(state.stock).toHaveLength(0);
+    });
+
+    it('returns the same state when waste is empty', () => {
+      const state = makeGameState();
+      const move = { type: 'recycle-waste' as const };
+      const result = moveCard(state, move);
+      expect(result).toBe(state);
+    });
   });
 });

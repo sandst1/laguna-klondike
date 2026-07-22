@@ -1,5 +1,5 @@
-import type { Card, DrawMode, GameState, Pile } from '../types';
-import { createDeck, shuffle } from './deck';
+import type { Card, DrawMode, GameState, Move, Pile } from '../types';
+import { createDeck, getRankValue, shuffle } from './deck';
 
 const NUM_FOUNDATIONS = 4;
 const NUM_TABLEAU = 7;
@@ -41,6 +41,192 @@ export function dealGame(drawMode: DrawMode = 3): GameState {
     drawMode,
     selectedCardId: null,
   };
+}
+
+function removeCardFromArray(cards: Card[], cardId: string): { removed: Card; rest: Card[] } {
+  const index = cards.findIndex((c) => c.id === cardId);
+  if (index === -1) {
+    throw new Error(`Card with id "${cardId}" not found in pile`);
+  }
+  const removed = cards[index];
+  const rest = [...cards.slice(0, index), ...cards.slice(index + 1)];
+  return { removed, rest };
+}
+
+function findFoundationTarget(state: GameState, card: Card): number {
+  for (let i = 0; i < state.foundations.length; i++) {
+    const f = state.foundations[i];
+    if (f.cards.length === 0) {
+      continue;
+    }
+    const top = f.cards[f.cards.length - 1];
+    if (top.suit === card.suit && getRankValue(card.rank) === getRankValue(top.rank) + 1) {
+      return i;
+    }
+  }
+  for (let i = 0; i < state.foundations.length; i++) {
+    if (state.foundations[i].cards.length === 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+export function moveCard(state: GameState, move: Move): GameState {
+  const { type, cardId } = move;
+
+  switch (type) {
+    case 'tableau-to-tableau': {
+      const { toPile } = move;
+      const sourceIndex = state.tableau.findIndex((p) =>
+        p.cards.some((c) => c.id === cardId)
+      );
+      if (sourceIndex === -1) {
+        return state;
+      }
+      const { removed, rest: sourceRest } = removeCardFromArray(
+        state.tableau[sourceIndex].cards,
+        cardId
+      );
+      const targetIndex = state.tableau.findIndex(
+        (p, i) => p.type === toPile && i !== sourceIndex
+      );
+      if (targetIndex === -1) {
+        return state;
+      }
+      const newTableau = state.tableau.map((pile, i) => {
+        if (i === sourceIndex) {
+          return { ...pile, cards: sourceRest };
+        }
+        if (i === targetIndex) {
+          return { ...pile, cards: [...pile.cards, removed] };
+        }
+        return pile;
+      });
+      return {
+        ...state,
+        tableau: newTableau,
+        moves: [...state.moves, move],
+      };
+    }
+
+    case 'tableau-to-foundation': {
+      const sourceIndex = state.tableau.findIndex((p) =>
+        p.cards.some((c) => c.id === cardId)
+      );
+      if (sourceIndex === -1) {
+        return state;
+      }
+      const { removed, rest: sourceRest } = removeCardFromArray(
+        state.tableau[sourceIndex].cards,
+        cardId
+      );
+      let foundationTarget = findFoundationTarget(state, removed);
+      if (foundationTarget === -1) {
+        return state;
+      }
+      const newFoundations = state.foundations.map((pile, i) => {
+        if (i === foundationTarget) {
+          return { ...pile, cards: [...pile.cards, removed] };
+        }
+        return pile;
+      });
+      const newTableau = state.tableau.map((pile, i) => {
+        if (i === sourceIndex) {
+          return { ...pile, cards: sourceRest };
+        }
+        return pile;
+      });
+      return {
+        ...state,
+        tableau: newTableau,
+        foundations: newFoundations,
+        moves: [...state.moves, move],
+      };
+    }
+
+    case 'waste-to-tableau': {
+      const sourceIndex = state.waste.findIndex((c) => c.id === cardId);
+      if (sourceIndex === -1) {
+        return state;
+      }
+      const removed = state.waste[sourceIndex];
+      const newWaste = [...state.waste.slice(0, sourceIndex), ...state.waste.slice(sourceIndex + 1)];
+      const targetIndex = state.tableau.findIndex((p) => p.type === move.toPile);
+      if (targetIndex === -1) {
+        return state;
+      }
+      const newTableau = state.tableau.map((pile, i) => {
+        if (i === targetIndex) {
+          return { ...pile, cards: [...pile.cards, removed] };
+        }
+        return pile;
+      });
+      return {
+        ...state,
+        waste: newWaste,
+        tableau: newTableau,
+        moves: [...state.moves, move],
+      };
+    }
+
+    case 'waste-to-foundation': {
+      const sourceIndex = state.waste.findIndex((c) => c.id === cardId);
+      if (sourceIndex === -1) {
+        return state;
+      }
+      const removed = state.waste[sourceIndex];
+      const newWaste = [...state.waste.slice(0, sourceIndex), ...state.waste.slice(sourceIndex + 1)];
+      const foundationTarget = findFoundationTarget(state, removed);
+      if (foundationTarget === -1) {
+        return state;
+      }
+      const newFoundations = state.foundations.map((pile, i) => {
+        if (i === foundationTarget) {
+          return { ...pile, cards: [...pile.cards, removed] };
+        }
+        return pile;
+      });
+      return {
+        ...state,
+        waste: newWaste,
+        foundations: newFoundations,
+        moves: [...state.moves, move],
+      };
+    }
+
+    case 'stock-to-waste': {
+      const sourceIndex = state.stock.findIndex((c) => c.id === cardId);
+      if (sourceIndex === -1) {
+        return state;
+      }
+      const removed = { ...state.stock[sourceIndex], faceUp: true };
+      const newStock = [...state.stock.slice(0, sourceIndex), ...state.stock.slice(sourceIndex + 1)];
+      const newWaste = [...state.waste, removed];
+      return {
+        ...state,
+        stock: newStock,
+        waste: newWaste,
+        moves: [...state.moves, move],
+      };
+    }
+
+    case 'recycle-waste': {
+      if (state.waste.length === 0) {
+        return state;
+      }
+      const recycled = state.waste.map((card) => ({ ...card, faceUp: false }));
+      return {
+        ...state,
+        stock: [...state.stock, ...recycled],
+        waste: [],
+        moves: [...state.moves, move],
+      };
+    }
+
+    default:
+      return state;
+  }
 }
 
 export function drawFromStock(state: GameState): GameState {
