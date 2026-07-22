@@ -46,7 +46,7 @@
 - [x] 6.1 Implement `useGameState` hook — wraps `useReducer` with GameState
 - [x] 6.2 Implement `useSettings` hook — localStorage for drawMode, sound, highContrast
 - [x] 6.3 Implement `useDragMove` hook — handles drag-drop validation and dispatch
-- [ ] 6.4 Write unit tests for hooks (vitest)
+- [x] 6.4 Write unit tests for hooks (vitest)
 
 ## Phase 7: UI Components — Card
 - [ ] 7.1 Build `Card` component — renders suit, rank, color
