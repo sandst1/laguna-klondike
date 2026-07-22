@@ -14,7 +14,7 @@
 - [x] 2.3 Define `PileType`, `Pile` interface
 - [x] 2.4 Define `GameState` interface (deck, stock, waste, foundations, tableau, moves, gameOver, drawMode, selectedCardId)
 - [x] 2.5 Define `Move` discriminated union
-- [ ] 2.6 Run `tsc --noEmit` to verify types compile
+- [x] 2.6 Run `tsc --noEmit` to verify types compile
 
 ## Phase 3: Game Logic — Deck & Utilities
 - [ ] 3.1 Implement `createDeck()` — builds 52-card deck
