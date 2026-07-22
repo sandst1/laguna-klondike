@@ -59,11 +59,6 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
         className
       )}
     >
-      <span className="sr-only">
-        {card.faceUp
-          ? `${label} of ${card.suit}${isRed ? ' (red)' : ' (black)'} card`
-          : 'face-down card'}
-      </span>
       <div className="card-flip-inner" data-face-up={card.faceUp}>
         <div className={clsx(faceDownSideClasses, faceDownClasses, 'card-back')} aria-hidden="true">
           <div className="absolute inset-0 flex items-center justify-center">

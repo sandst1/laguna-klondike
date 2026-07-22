@@ -41,6 +41,7 @@ npx tsc --noEmit  # typecheck
 - Unit tests: vitest (configured in `vite.config.ts` with `test` block)
 - Test files: `*.test.ts` colocated with source files
 - React hook tests: `@testing-library/react` with `renderHook` (jsdom environment via `@vitest-environment jsdom` docblock)
+- React component tests: `@testing-library/react` with `render` and `screen` queries (jsdom environment via `@vitest-environment jsdom` docblock)
 - Planned: Playwright (added in later tasks)
 
 ## Workflow
