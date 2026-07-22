@@ -54,4 +54,34 @@ describe('Card', () => {
       expect(onClick).toHaveBeenCalledOnce();
     });
   });
+
+  describe('isSelected visual state', () => {
+    it('sets data-selected="true" when isSelected is true', () => {
+      const card = makeCard();
+      render(<Card card={card} isSelected />);
+      const button = screen.getByRole('button');
+      expect(button.getAttribute('data-selected')).toBe('true');
+    });
+
+    it('sets data-selected="false" when isSelected is false', () => {
+      const card = makeCard();
+      render(<Card card={card} isSelected={false} />);
+      const button = screen.getByRole('button');
+      expect(button.getAttribute('data-selected')).toBe('false');
+    });
+
+    it('defaults data-selected to "false" when isSelected is not provided', () => {
+      const card = makeCard();
+      render(<Card card={card} />);
+      const button = screen.getByRole('button');
+      expect(button.getAttribute('data-selected')).toBe('false');
+    });
+
+    it('includes the card-selected class for CSS targeting', () => {
+      const card = makeCard();
+      render(<Card card={card} isSelected />);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('card-selected');
+    });
+  });
 });

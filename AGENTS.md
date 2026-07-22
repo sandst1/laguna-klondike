@@ -56,3 +56,9 @@ npx tsc --noEmit  # typecheck
 - The face-down card uses a green felt design with a woven texture pattern (SVG `<pattern>`), a central circular motif, and radial highlight gradients for a 3D felt appearance.
 - CSS class `.card-back` adds radial gradient highlights to simulate felt lighting.
 - Face-down background: `bg-green-900` with `border-green-950`.
+
+## Card Selected State
+- The `Card` component accepts an `isSelected` prop (boolean, defaults to `false`).
+- When `isSelected` is `true`, the button receives `data-selected="true"` and the `card-selected` class.
+- CSS class `.card-selected[data-selected='true']` applies a blue ring, offset shadow, slight scale-up, and elevated z-index.
+- The `data-selected` attribute enables both CSS targeting and accessibility tooling.

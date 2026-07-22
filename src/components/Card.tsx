@@ -35,8 +35,6 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
 
   const faceDownClasses = 'bg-green-900 border-green-950';
 
-  const selectedClasses = isSelected ? 'ring-2 ring-offset-2 ring-blue-400 scale-105 z-10' : '';
-
   const faceUpSideClasses =
     'absolute inset-0 flex items-center justify-center rounded-lg border-2 border-white';
   const faceDownSideClasses =
@@ -51,10 +49,11 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
           ? `${label} of ${card.suit}${isRed ? ' (red)' : ' (black)'} card`
           : 'face-down card'
       }
+      data-selected={isSelected}
       className={clsx(
         baseClasses,
         'card-flip',
-        selectedClasses,
+        'card-selected',
         onClick ? 'cursor-pointer' : 'cursor-default',
         className
       )}

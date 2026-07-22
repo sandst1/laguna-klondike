@@ -53,7 +53,7 @@
 - [x] 7.2 Add card flip animation (CSS transition)
 - [x] 7.3 Add card back design (green felt)
 - [x] 7.4 Add aria-label for accessibility
-- [ ] 7.5 Add isSelected visual state
+- [x] 7.5 Add isSelected visual state
 
 ## Phase 8: UI Components — Board & Piles
 - [ ] 8.1 Build `GameBoard` — CSS grid layout (7 columns × 2 rows)
