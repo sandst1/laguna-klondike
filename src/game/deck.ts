@@ -61,6 +61,10 @@ export function getColor(suit: Suit): Color {
   return RED_SUITS.includes(suit) ? 'red' : 'black';
 }
 
+export function isRedBlackOpposite(cardA: Card, cardB: Card): boolean {
+  return cardA.color !== cardB.color;
+}
+
 export function shuffle<T>(deck: T[]): T[] {
   const result: T[] = [...deck];
   for (let i = result.length - 1; i > 0; i--) {

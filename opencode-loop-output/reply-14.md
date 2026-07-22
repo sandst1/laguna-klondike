@@ -1,0 +1,2 @@
+
+Implemented `getRankValue(rank)` in `src/game/deck.ts` — maps each `Rank` to its numeric value (A=1 through K=13) via a `Record<Rank, number>` lookup table. Typecheck passes. Task 3.3 marked complete.
