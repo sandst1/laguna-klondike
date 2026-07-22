@@ -22,7 +22,7 @@
 - [x] 3.3 Implement `getRankValue(rank)` — numeric value (A=1, K=13)
 - [x] 3.4 Implement `getColor(suit)` — returns 'red' or 'black'
 - [x] 3.5 Implement `isRedBlackOpposite(cardA, cardB)` — alternating color check
-- [ ] 3.6 Write unit tests for deck utilities (vitest)
+- [x] 3.6 Write unit tests for deck utilities (vitest)
 
 ## Phase 4: Game Logic — Rules Engine
 - [ ] 4.1 Implement `canMoveToFoundation(card, foundationTop)` — A on empty, same suit, ascending

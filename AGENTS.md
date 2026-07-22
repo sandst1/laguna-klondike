@@ -9,7 +9,7 @@ Browser-based Klondike Solitaire built with React, Vite, TypeScript, TailwindCSS
 - Formatting: Prettier (configured in `.prettierrc`, ignore in `.prettierignore`)
 - TailwindCSS 4, dnd-kit (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/modifiers`), clsx
 - PostCSS (`@tailwindcss/postcss`) for TailwindCSS processing (configured in `postcss.config.cjs`)
-- Planned: vitest, Playwright (added in later tasks)
+- Testing: vitest (configured in `vite.config.ts`), planned: Playwright
 
 ## Structure
 ```
@@ -32,7 +32,14 @@ npm run lint:eslint  # ESLint check
 npm run lint:fix  # ESLint auto-fix
 npm run format    # Prettier format
 npm run format:check  # Prettier check
+npm test          # run vitest (watch mode)
+npm run test:run  # run vitest once
 ```
+
+## Testing
+- Unit tests: vitest (configured in `vite.config.ts` with `test` block)
+- Test files: `*.test.ts` colocated with source files
+- Planned: Playwright (added in later tasks)
 
 ## Workflow
 - After completing a task, review and **update this AGENTS.md** to reflect any changes to structure, commands, or conventions.
