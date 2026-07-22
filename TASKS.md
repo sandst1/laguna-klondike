@@ -43,8 +43,8 @@
 - [x] 5.8 Write unit tests for game state (vitest)
 
 ## Phase 6: React Hooks
-- [ ] 6.1 Implement `useGameState` hook — wraps `useReducer` with GameState
-- [ ] 6.2 Implement `useSettings` hook — localStorage for drawMode, sound, highContrast
+- [x] 6.1 Implement `useGameState` hook — wraps `useReducer` with GameState
+- [x] 6.2 Implement `useSettings` hook — localStorage for drawMode, sound, highContrast
 - [ ] 6.3 Implement `useDragMove` hook — handles drag-drop validation and dispatch
 - [ ] 6.4 Write unit tests for hooks (vitest)
 
