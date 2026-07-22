@@ -1,7 +1,7 @@
 # Klondike Solitaire — Task List
 
 ## Phase 1: Project Setup & Scaffolding
-- [ ] 1.1 Scaffold Vite + React + TypeScript project
+- [x] 1.1 Scaffold Vite + React + TypeScript project
 - [ ] 1.2 Install dependencies (`dnd-kit`, `clsx`, `tailwindcss`)
 - [ ] 1.3 Configure TailwindCSS + PostCSS
 - [ ] 1.4 Configure ESLint + Prettier
