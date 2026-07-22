@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkWin, dealGame, drawFromStock, flipTableauCard, moveCard } from './game';
+import { autoMoveToFoundation, checkWin, dealGame, drawFromStock, flipTableauCard, moveCard } from './game';
 import { createDeck } from './deck';
 
 describe('dealGame', () => {
@@ -544,6 +544,150 @@ describe('flipTableauCard', () => {
     const result = flipTableauCard(state, 1);
     expect(result.tableau[0].cards[0].faceUp).toBe(false);
     expect(result.tableau[1].cards[0].faceUp).toBe(true);
+  });
+});
+
+describe('autoMoveToFoundation', () => {
+  const makeGameState = (overrides: Partial<import('../types').GameState> = {}) => ({
+    deck: [],
+    stock: [],
+    waste: [],
+    foundations: [
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+    ],
+    tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
+    moves: [],
+    gameOver: false,
+    drawMode: 3,
+    selectedCardId: null,
+    ...overrides,
+  });
+
+  const makeCard = (overrides: Partial<import('../types').Card>): import('../types').Card => ({
+    id: 'test-card',
+    suit: 'hearts',
+    rank: 'A',
+    color: 'red',
+    faceUp: true,
+    ...overrides,
+  });
+
+  it('moves a face-up tableau Ace to an empty foundation', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [ace] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = autoMoveToFoundation(state, ace);
+    expect(result.tableau[0].cards).toHaveLength(0);
+    expect(result.foundations[0].cards).toHaveLength(1);
+    expect(result.foundations[0].cards[0].id).toBe('ah');
+  });
+
+  it('moves a face-up waste card to the correct foundation', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red' });
+    const state = makeGameState({
+      waste: [two],
+      foundations: [
+        { type: 'foundation', cards: [ace] },
+        { type: 'foundation', cards: [] },
+        { type: 'foundation', cards: [] },
+        { type: 'foundation', cards: [] },
+      ],
+    });
+    const result = autoMoveToFoundation(state, two);
+    expect(result.waste).toHaveLength(0);
+    expect(result.foundations[0].cards).toHaveLength(2);
+    expect(result.foundations[0].cards[1].id).toBe('2h');
+  });
+
+  it('returns the same state when the card is face-down', () => {
+    const faceDownAce = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: false });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceDownAce] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = autoMoveToFoundation(state, faceDownAce);
+    expect(result).toBe(state);
+  });
+
+  it('returns the same state when the card cannot move to any foundation', () => {
+    const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red' });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [two] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = autoMoveToFoundation(state, two);
+    expect(result).toBe(state);
+  });
+
+  it('returns the same state when the card is not in tableau or waste', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState();
+    const result = autoMoveToFoundation(state, ace);
+    expect(result).toBe(state);
+  });
+
+  it('does not mutate the original state', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [ace] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    autoMoveToFoundation(state, ace);
+    expect(state.tableau[0].cards).toHaveLength(1);
+    expect(state.foundations[0].cards).toHaveLength(0);
+  });
+
+  it('adds the move to the moves array', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [ace] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+    const result = autoMoveToFoundation(state, ace);
+    expect(result.moves).toHaveLength(1);
+    expect(result.moves[0].type).toBe('tableau-to-foundation');
+    expect(result.moves[0].cardId).toBe('ah');
   });
 });
 

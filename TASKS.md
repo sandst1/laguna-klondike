@@ -38,7 +38,7 @@
 - [x] 5.3 Implement `moveCard(state, move)` — immutable state update for all move types
 - [x] 5.4 Implement `flipTableauCard(state, index)` — flip top face-down card
 - [x] 5.5 Implement `checkWin(state)` — all 4 foundations have 13 cards
-- [ ] 5.6 Implement `autoMoveToFoundation(state, card)` — double-click helper
+- [x] 5.6 Implement `autoMoveToFoundation(state, card)` — double-click helper
 - [ ] 5.7 Implement `selectCard(state, cardId)` — set selectedCardId
 - [ ] 5.8 Write unit tests for game state (vitest)
 

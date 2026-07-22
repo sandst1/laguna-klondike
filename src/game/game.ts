@@ -1,5 +1,6 @@
 import type { Card, DrawMode, GameState, Move, Pile } from '../types';
 import { createDeck, getRankValue, shuffle } from './deck';
+import { canMoveToFoundation } from './rules';
 
 const NUM_FOUNDATIONS = 4;
 const NUM_TABLEAU = 7;
@@ -261,6 +262,48 @@ export function flipTableauCard(state: GameState, index: number): GameState {
 
 export function checkWin(state: GameState): boolean {
   return state.foundations.every((foundation) => foundation.cards.length === 13);
+}
+
+export function autoMoveToFoundation(state: GameState, card: Card): GameState {
+  if (!card.faceUp) {
+    return state;
+  }
+
+  let foundationTarget = -1;
+  for (let i = 0; i < state.foundations.length; i++) {
+    const foundation = state.foundations[i];
+    const foundationTop =
+      foundation.cards.length > 0 ? foundation.cards[foundation.cards.length - 1] : null;
+    if (canMoveToFoundation(card, foundationTop)) {
+      foundationTarget = i;
+      break;
+    }
+  }
+
+  if (foundationTarget === -1) {
+    return state;
+  }
+
+  const isInTableau = state.tableau.some((pile) => pile.cards.some((c) => c.id === card.id));
+  const isInWaste = state.waste.some((c) => c.id === card.id);
+
+  if (isInTableau) {
+    return moveCard(state, {
+      type: 'tableau-to-foundation',
+      fromPile: 'tableau',
+      toPile: 'foundation',
+      cardId: card.id,
+    });
+  }
+
+  if (isInWaste) {
+    return moveCard(state, {
+      type: 'waste-to-foundation',
+      cardId: card.id,
+    });
+  }
+
+  return state;
 }
 
 export function drawFromStock(state: GameState): GameState {

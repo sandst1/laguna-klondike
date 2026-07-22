@@ -34,6 +34,7 @@ npm run format    # Prettier format
 npm run format:check  # Prettier check
 npm test          # run vitest (watch mode)
 npm run test:run  # run vitest once
+npx tsc --noEmit  # typecheck
 ```
 
 ## Testing
