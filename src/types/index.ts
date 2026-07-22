@@ -24,3 +24,10 @@ export interface Card {
   color: Color;
   faceUp: boolean;
 }
+
+export type PileType = 'stock' | 'waste' | 'foundation' | 'tableau';
+
+export interface Pile {
+  type: PileType;
+  cards: Card[];
+}
