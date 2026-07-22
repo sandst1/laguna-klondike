@@ -1,5 +1,5 @@
 import type { Card } from '../types';
-import { getRankValue } from './deck';
+import { getRankValue, isRedBlackOpposite } from './deck';
 
 export function canMoveToFoundation(card: Card, foundationTop: Card | null): boolean {
   const cardValue = getRankValue(card.rank);
@@ -13,4 +13,16 @@ export function canMoveToFoundation(card: Card, foundationTop: Card | null): boo
   }
 
   return cardValue === getRankValue(foundationTop.rank) + 1;
+}
+
+export function canMoveToTableau(card: Card, tableauTop: Card | null): boolean {
+  if (tableauTop === null) {
+    return getRankValue(card.rank) === 13;
+  }
+
+  if (!isRedBlackOpposite(card, tableauTop)) {
+    return false;
+  }
+
+  return getRankValue(card.rank) === getRankValue(tableauTop.rank) - 1;
 }
