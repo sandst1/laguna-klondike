@@ -16,3 +16,11 @@ export type Rank =
   | 'K';
 
 export type Color = 'red' | 'black';
+
+export interface Card {
+  id: string;
+  suit: Suit;
+  rank: Rank;
+  color: Color;
+  faceUp: boolean;
+}

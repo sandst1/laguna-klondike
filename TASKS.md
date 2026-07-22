@@ -10,7 +10,7 @@
 
 ## Phase 2: TypeScript Types
 - [x] 2.1 Define `Suit`, `Rank`, `Color` types
-- [ ] 2.2 Define `Card` interface
+- [x] 2.2 Define `Card` interface
 - [ ] 2.3 Define `PileType`, `Pile` interface
 - [ ] 2.4 Define `GameState` interface (deck, stock, waste, foundations, tableau, moves, gameOver, drawMode, selectedCardId)
 - [ ] 2.5 Define `Move` discriminated union
