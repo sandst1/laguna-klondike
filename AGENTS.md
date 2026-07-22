@@ -50,3 +50,8 @@ npx tsc --noEmit  # typecheck
 - The `Card` component uses CSS 3D transforms for face-up/face-down transitions.
 - CSS classes: `.card-flip` (perspective container), `.card-flip-inner` (3D transform target, `data-face-up` attribute controls rotation via `transform: rotateY(-180deg)`), `.card-flip-front` / `.card-flip-back` (backface-hidden faces).
 - Styles defined in `src/index.css` under `@layer components`.
+
+## Card Back Design
+- The face-down card uses a green felt design with a woven texture pattern (SVG `<pattern>`), a central circular motif, and radial highlight gradients for a 3D felt appearance.
+- CSS class `.card-back` adds radial gradient highlights to simulate felt lighting.
+- Face-down background: `bg-green-900` with `border-green-950`.

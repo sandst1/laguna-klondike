@@ -51,7 +51,7 @@
 ## Phase 7: UI Components — Card
 - [x] 7.1 Build `Card` component — renders suit, rank, color
 - [x] 7.2 Add card flip animation (CSS transition)
-- [ ] 7.3 Add card back design (green felt)
+- [x] 7.3 Add card back design (green felt)
 - [ ] 7.4 Add aria-label for accessibility
 - [ ] 7.5 Add isSelected visual state
 
