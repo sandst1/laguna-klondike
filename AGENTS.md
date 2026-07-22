@@ -14,7 +14,7 @@ Browser-based Klondike Solitaire built with React, Vite, TypeScript, TailwindCSS
 ## Structure
 ```
 src/
-  components/   # React UI components (Card, piles, board, controls)
+  components/   # React UI components (Card.tsx, piles, board, controls)
   game/         # Pure game logic (deck.ts, rules.ts, game.ts)
   hooks/        # Custom React hooks (useGameState, useSettings, useDragMove)
   types/        # TypeScript type definitions

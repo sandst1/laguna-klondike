@@ -49,7 +49,7 @@
 - [x] 6.4 Write unit tests for hooks (vitest)
 
 ## Phase 7: UI Components — Card
-- [ ] 7.1 Build `Card` component — renders suit, rank, color
+- [x] 7.1 Build `Card` component — renders suit, rank, color
 - [ ] 7.2 Add card flip animation (CSS transition)
 - [ ] 7.3 Add card back design (green felt)
 - [ ] 7.4 Add aria-label for accessibility
