@@ -3,7 +3,7 @@
 ## Phase 1: Project Setup & Scaffolding
 - [x] 1.1 Scaffold Vite + React + TypeScript project
 - [x] 1.2 Install dependencies (`dnd-kit`, `clsx`, `tailwindcss`)
-- [ ] 1.3 Configure TailwindCSS + PostCSS
+- [x] 1.3 Configure TailwindCSS + PostCSS
 - [ ] 1.4 Configure ESLint + Prettier
 - [ ] 1.5 Set up directory structure (`src/components/`, `src/game/`, `src/hooks/`, `src/types/`)
 - [ ] 1.6 Verify dev server runs (`npm run dev`)
