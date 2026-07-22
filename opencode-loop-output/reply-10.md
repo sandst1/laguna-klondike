@@ -1,0 +1,5 @@
+
+The current `Move` is a flat interface. I need to convert it to a discriminated union. Let me check how `Move` is used elsewhere to design appropriate variants.
+No other usages. I'll define a `Move` discriminated union covering the main move types in Klondike: tableau→tableau, tableau→foundation, waste→tableau, waste→foundation, stock→waste, and waste recycle. Each variant has a `type` discriminator and relevant fields.
+Types compile cleanly. Now update the task checkbox and commit.
+Done. Replaced the flat `Move` interface in `src/types/index.ts` with a `Move` discriminated union covering six move variants (`tableau-to-tableau`, `tableau-to-foundation`, `waste-to-tableau`, `waste-to-foundation`, `stock-to-waste`, `recycle-waste`), each with a `MoveType` discriminator. Verified with `tsc --noEmit` (clean) and committed.

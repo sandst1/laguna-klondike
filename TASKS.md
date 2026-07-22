@@ -17,7 +17,7 @@
 - [x] 2.6 Run `tsc --noEmit` to verify types compile
 
 ## Phase 3: Game Logic — Deck & Utilities
-- [ ] 3.1 Implement `createDeck()` — builds 52-card deck
+- [x] 3.1 Implement `createDeck()` — builds 52-card deck
 - [ ] 3.2 Implement `shuffle(deck)` — Fisher-Yates shuffle
 - [ ] 3.3 Implement `getRankValue(rank)` — numeric value (A=1, K=13)
 - [ ] 3.4 Implement `getColor(suit)` — returns 'red' or 'black'
