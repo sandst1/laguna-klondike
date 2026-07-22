@@ -259,6 +259,10 @@ export function flipTableauCard(state: GameState, index: number): GameState {
   };
 }
 
+export function checkWin(state: GameState): boolean {
+  return state.foundations.every((foundation) => foundation.cards.length === 13);
+}
+
 export function drawFromStock(state: GameState): GameState {
   const { stock, waste, drawMode, moves } = state;
 

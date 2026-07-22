@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dealGame, drawFromStock, flipTableauCard, moveCard } from './game';
+import { checkWin, dealGame, drawFromStock, flipTableauCard, moveCard } from './game';
 import { createDeck } from './deck';
 
 describe('dealGame', () => {
@@ -544,6 +544,91 @@ describe('flipTableauCard', () => {
     const result = flipTableauCard(state, 1);
     expect(result.tableau[0].cards[0].faceUp).toBe(false);
     expect(result.tableau[1].cards[0].faceUp).toBe(true);
+  });
+});
+
+describe('checkWin', () => {
+  const makeGameState = (overrides: Partial<import('../types').GameState> = {}) => ({
+    deck: [],
+    stock: [],
+    waste: [],
+    foundations: [
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+    ],
+    tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
+    moves: [],
+    gameOver: false,
+    drawMode: 3,
+    selectedCardId: null,
+    ...overrides,
+  });
+
+  const makeCard = (overrides: Partial<import('../types').Card>): import('../types').Card => ({
+    id: 'test-card',
+    suit: 'hearts',
+    rank: 'A',
+    color: 'red',
+    faceUp: true,
+    ...overrides,
+  });
+
+  it('returns false when all foundations are empty', () => {
+    const state = makeGameState();
+    expect(checkWin(state)).toBe(false);
+  });
+
+  it('returns false when only some foundations have 13 cards', () => {
+    const fullFoundation = Array.from({ length: 13 }, (_, i) =>
+      makeCard({ id: `f0-${i}`, rank: 'A' })
+    );
+    const state = makeGameState({
+      foundations: [
+        { type: 'foundation', cards: fullFoundation },
+        { type: 'foundation', cards: [] },
+        { type: 'foundation', cards: [] },
+        { type: 'foundation', cards: [] },
+      ],
+    });
+    expect(checkWin(state)).toBe(false);
+  });
+
+  it('returns false when all foundations have cards but not 13 each', () => {
+    const state = makeGameState({
+      foundations: [
+        { type: 'foundation', cards: [makeCard({ id: 'a1' })] },
+        { type: 'foundation', cards: [makeCard({ id: 'a2' })] },
+        { type: 'foundation', cards: [makeCard({ id: 'a3' })] },
+        { type: 'foundation', cards: [makeCard({ id: 'a4' })] },
+      ],
+    });
+    expect(checkWin(state)).toBe(false);
+  });
+
+  it('returns true when all 4 foundations have exactly 13 cards', () => {
+    const fullFoundations = Array.from({ length: 4 }, (_, fi) => ({
+      type: 'foundation' as const,
+      cards: Array.from({ length: 13 }, (_, ci) => makeCard({ id: `f${fi}-${ci}` })),
+    }));
+    const state = makeGameState({ foundations: fullFoundations });
+    expect(checkWin(state)).toBe(true);
+  });
+
+  it('returns false when a foundation has more than 13 cards', () => {
+    const overFull = Array.from({ length: 14 }, (_, i) =>
+      makeCard({ id: `f0-${i}` })
+    );
+    const state = makeGameState({
+      foundations: [
+        { type: 'foundation', cards: overFull },
+        { type: 'foundation', cards: overFull },
+        { type: 'foundation', cards: overFull },
+        { type: 'foundation', cards: overFull },
+      ],
+    });
+    expect(checkWin(state)).toBe(false);
   });
 });
 
