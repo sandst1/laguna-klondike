@@ -123,6 +123,57 @@
 }
 
 @layer components {
+  @keyframes flip {
+    0% {
+      transform: rotateY(0deg);
+    }
+    50% {
+      transform: rotateY(-90deg);
+    }
+    100% {
+      transform: rotateY(-180deg);
+    }
+  }
+
+  @keyframes flip-back {
+    0% {
+      transform: rotateY(0deg);
+    }
+    50% {
+      transform: rotateY(90deg);
+    }
+    100% {
+      transform: rotateY(180deg);
+    }
+  }
+
+  .card-flip {
+    perspective: 1000px;
+  }
+
+  .card-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.45s ease;
+    transform-style: preserve-3d;
+  }
+
+  .card-flip-inner[data-face-up='true'] {
+    transform: rotateY(-180deg);
+  }
+
+  .card-flip-front,
+  .card-flip-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+  }
+
+  .card-flip-back {
+    transform: rotateY(-180deg);
+  }
+
   .counter {
     font-size: 16px;
     padding: 5px 10px;

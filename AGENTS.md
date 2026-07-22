@@ -45,3 +45,8 @@ npx tsc --noEmit  # typecheck
 
 ## Workflow
 - After completing a task, review and **update this AGENTS.md** to reflect any changes to structure, commands, or conventions.
+
+## Card Flip Animation
+- The `Card` component uses CSS 3D transforms for face-up/face-down transitions.
+- CSS classes: `.card-flip` (perspective container), `.card-flip-inner` (3D transform target, `data-face-up` attribute controls rotation via `transform: rotateY(-180deg)`), `.card-flip-front` / `.card-flip-back` (backface-hidden faces).
+- Styles defined in `src/index.css` under `@layer components`.

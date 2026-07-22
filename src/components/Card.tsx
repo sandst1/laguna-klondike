@@ -31,15 +31,16 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
   const baseClasses =
     'relative rounded-lg border-2 border-white shadow-md select-none transition-all duration-150 ease-in-out';
 
-  const faceUpClasses = isRed
-    ? 'bg-[#fefefe] text-red-600'
-    : 'bg-[#fefefe] text-slate-900';
+  const faceUpClasses = isRed ? 'bg-[#fefefe] text-red-600' : 'bg-[#fefefe] text-slate-900';
 
   const faceDownClasses = 'bg-blue-950 border-blue-900';
 
-  const selectedClasses = isSelected
-    ? 'ring-2 ring-offset-2 ring-blue-400 scale-105 z-10'
-    : '';
+  const selectedClasses = isSelected ? 'ring-2 ring-offset-2 ring-blue-400 scale-105 z-10' : '';
+
+  const faceUpSideClasses =
+    'absolute inset-0 flex items-center justify-center rounded-lg border-2 border-white';
+  const faceDownSideClasses =
+    'absolute inset-0 flex items-center justify-center rounded-lg border-2 border-white';
 
   return (
     <button
@@ -52,24 +53,33 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
       }
       className={clsx(
         baseClasses,
-        card.faceUp ? faceUpClasses : faceDownClasses,
+        'card-flip',
         selectedClasses,
         onClick ? 'cursor-pointer' : 'cursor-default',
         className
       )}
     >
-      {card.faceUp ? (
-        <div className="relative flex h-full w-full flex-col items-center justify-between p-1 text-sm font-bold leading-tight">
-          <span className="self-start">{label}</span>
-          <span
-            className="text-3xl"
-            aria-hidden="true"
-          >
-            {symbol}
+      <span className="sr-only">
+        {card.faceUp
+          ? `${label} of ${card.suit}${isRed ? ' (red)' : ' (black)'} card`
+          : 'face-down card'}
+      </span>
+      <div className="card-flip-inner" data-face-up={card.faceUp}>
+        <div className={clsx(faceDownSideClasses, faceDownClasses)} aria-hidden="true">
+          <span className="text-3xl text-blue-400" aria-hidden="true">
+            🂠
           </span>
-          <span className="self-end rotate-180">{label}</span>
         </div>
-      ) : null}
+        <div className={clsx(faceUpSideClasses, faceUpClasses)} aria-hidden="true">
+          <div className="relative flex h-full w-full flex-col items-center justify-between p-1 text-sm font-bold leading-tight">
+            <span className="self-start">{label}</span>
+            <span className="text-3xl" aria-hidden="true">
+              {symbol}
+            </span>
+            <span className="self-end rotate-180">{label}</span>
+          </div>
+        </div>
+      </div>
     </button>
   );
 }
