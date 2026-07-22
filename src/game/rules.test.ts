@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { canMoveToFoundation, canMoveToTableau, getValidMoves } from './rules';
+import {
+  canMoveToFoundation,
+  canMoveToTableau,
+  getValidMoves,
+  getValidMovesForCard,
+} from './rules';
 import type { Card, GameState } from '../types';
 
 const makeCard = (suit: Card['suit'], rank: Card['rank']): Card => ({
@@ -387,5 +392,106 @@ describe('getValidMoves', () => {
       expect(move.move.fromPile).toBe('tableau');
       expect(move.move.toPile).toBe('foundation');
     }
+  });
+});
+
+describe('getValidMovesForCard', () => {
+  const makeCard = (suit: Card['suit'], rank: Card['rank'], faceUp = true): Card => ({
+    id: `${suit}-${rank}`,
+    suit,
+    rank,
+    color: suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black',
+    faceUp,
+  });
+
+  const makeState = (overrides: Partial<GameState> = {}): GameState => ({
+    deck: [],
+    stock: [],
+    waste: [],
+    foundations: [
+      { type: 'foundation', cards: [] },
+      { type: 'foundation', cards: [] },
+      { type: 'foundation', cards: [] },
+      { type: 'foundation', cards: [] },
+    ],
+    tableau: [
+      { type: 'tableau', cards: [] },
+      { type: 'tableau', cards: [] },
+      { type: 'tableau', cards: [] },
+      { type: 'tableau', cards: [] },
+      { type: 'tableau', cards: [] },
+      { type: 'tableau', cards: [] },
+      { type: 'tableau', cards: [] },
+    ],
+    moves: [],
+    gameOver: false,
+    drawMode: 3,
+    selectedCardId: null,
+    ...overrides,
+  });
+
+  it('returns valid moves for a card resolved by ID from the tableau', () => {
+    const ace = makeCard('hearts', 'A');
+    const state = makeState({
+      tableau: [{ type: 'tableau', cards: [ace] }, ...makeState().tableau.slice(1)],
+    });
+    const moves = getValidMovesForCard(state, 'hearts-A');
+    expect(moves).toHaveLength(4);
+    for (const move of moves) {
+      expect(move.to.pileType).toBe('foundation');
+    }
+  });
+
+  it('returns valid moves for a card resolved by ID from the waste', () => {
+    const king = makeCard('hearts', 'K');
+    const state = makeState({ waste: [king] });
+    const moves = getValidMovesForCard(state, 'hearts-K');
+    const tableauMoves = moves.filter((m) => m.to.pileType === 'tableau');
+    expect(tableauMoves).toHaveLength(7);
+  });
+
+  it('returns valid moves for a card resolved by ID from the stock', () => {
+    const ace = makeCard('hearts', 'A');
+    const state = makeState({ stock: [ace] });
+    const moves = getValidMovesForCard(state, 'hearts-A');
+    expect(moves).toHaveLength(4);
+  });
+
+  it('returns valid moves for a card resolved by ID from a foundation', () => {
+    const ace = makeCard('hearts', 'A');
+    const two = makeCard('hearts', '2');
+    const blackThree = makeCard('clubs', '3');
+    const state = makeState({
+      foundations: [{ type: 'foundation', cards: [ace, two] }, ...makeState().foundations.slice(1)],
+      tableau: [
+        { type: 'tableau', cards: [blackThree] },
+        ...makeState().tableau.slice(1),
+      ],
+    });
+    const moves = getValidMovesForCard(state, 'hearts-2');
+    expect(moves).toHaveLength(1);
+    expect(moves[0].to.pileType).toBe('tableau');
+    expect(moves[0].to.index).toBe(0);
+  });
+
+  it('returns an empty array when the card ID is not found', () => {
+    const state = makeState();
+    const moves = getValidMovesForCard(state, 'nonexistent-id');
+    expect(moves).toEqual([]);
+  });
+
+  it('returns an empty array for a face-down card resolved by ID', () => {
+    const ace = makeCard('hearts', 'A', false);
+    const state = makeState({ tableau: [{ type: 'tableau', cards: [ace] }, ...makeState().tableau.slice(1)] });
+    const moves = getValidMovesForCard(state, 'hearts-A');
+    expect(moves).toEqual([]);
+  });
+
+  it('returns the same result as getValidMoves for the same card', () => {
+    const ace = makeCard('hearts', 'A');
+    const state = makeState({ tableau: [{ type: 'tableau', cards: [ace] }, ...makeState().tableau.slice(1)] });
+    const movesById = getValidMovesForCard(state, 'hearts-A');
+    const movesByCard = getValidMoves(state, ace);
+    expect(movesById).toEqual(movesByCard);
   });
 });

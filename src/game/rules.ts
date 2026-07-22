@@ -46,6 +46,42 @@ export function canFlipTableau(pile: Pile): boolean {
   return !topCard.faceUp;
 }
 
+export function findCardById(state: GameState, cardId: string): Card | null {
+  for (const card of state.stock) {
+    if (card.id === cardId) {
+      return card;
+    }
+  }
+  for (const card of state.waste) {
+    if (card.id === cardId) {
+      return card;
+    }
+  }
+  for (const foundation of state.foundations) {
+    for (const card of foundation.cards) {
+      if (card.id === cardId) {
+        return card;
+      }
+    }
+  }
+  for (const tableau of state.tableau) {
+    for (const card of tableau.cards) {
+      if (card.id === cardId) {
+        return card;
+      }
+    }
+  }
+  return null;
+}
+
+export function getValidMovesForCard(state: GameState, cardId: string): ValidMove[] {
+  const card = findCardById(state, cardId);
+  if (card === null) {
+    return [];
+  }
+  return getValidMoves(state, card);
+}
+
 export function getValidMoves(state: GameState, card: Card): ValidMove[] {
   const moves: ValidMove[] = [];
 

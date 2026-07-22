@@ -29,7 +29,7 @@
 - [x] 4.2 Implement `canMoveToTableau(card, tableauTop)` — K on empty, descending, alternating colors
 - [x] 4.3 Implement `canFlipTableau(pile)` — check if top card is face-down
 - [x] 4.4 Implement `getValidMoves(state, card)` — returns list of valid drop targets for a card
-- [ ] 4.5 Implement `getValidMovesForCard(state, cardId)` — resolves card by ID, returns targets
+- [x] 4.5 Implement `getValidMovesForCard(state, cardId)` — resolves card by ID, returns targets
 - [ ] 4.6 Write unit tests for rules engine (vitest)
 
 ## Phase 5: Game Logic — Game State
