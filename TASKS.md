@@ -34,7 +34,7 @@
 
 ## Phase 5: Game Logic — Game State
 - [x] 5.1 Implement `dealGame()` — shuffle, deal 7 tableau piles, remaining to stock
-- [ ] 5.2 Implement `drawFromStock(state)` — draw 3 (or 1) cards, recycle if empty
+- [x] 5.2 Implement `drawFromStock(state)` — draw 3 (or 1) cards, recycle if empty
 - [ ] 5.3 Implement `moveCard(state, move)` — immutable state update for all move types
 - [ ] 5.4 Implement `flipTableauCard(state, index)` — flip top face-down card
 - [ ] 5.5 Implement `checkWin(state)` — all 4 foundations have 13 cards
