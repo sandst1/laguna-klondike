@@ -6,7 +6,8 @@ Browser-based Klondike Solitaire built with React, Vite, TypeScript, TailwindCSS
 ## Tech Stack
 - React 19, Vite 8, TypeScript 6
 - Linting: oxlint (configured in `.oxlintrc.json`)
-- Planned: TailwindCSS, dnd-kit, clsx, vitest, Playwright (added in later tasks)
+- TailwindCSS 4, dnd-kit (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/modifiers`), clsx
+- Planned: vitest, Playwright (added in later tasks)
 
 ## Structure
 ```
