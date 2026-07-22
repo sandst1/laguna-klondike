@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { autoMoveToFoundation, checkWin, dealGame, drawFromStock, flipTableauCard, moveCard } from './game';
+import { autoMoveToFoundation, checkWin, dealGame, drawFromStock, flipTableauCard, moveCard, selectCard } from './game';
 import { createDeck } from './deck';
 
 describe('dealGame', () => {
@@ -1192,5 +1192,71 @@ describe('moveCard', () => {
       const result = moveCard(state, move);
       expect(result).toBe(state);
     });
+  });
+});
+
+describe('selectCard', () => {
+  const makeGameState = (overrides: Partial<import('../types').GameState> = {}) => ({
+    deck: [],
+    stock: [],
+    waste: [],
+    foundations: [
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+    ],
+    tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
+    moves: [],
+    gameOver: false,
+    drawMode: 3,
+    selectedCardId: null,
+    ...overrides,
+  });
+
+  it('sets selectedCardId to the given card id', () => {
+    const state = makeGameState();
+    const result = selectCard(state, 'card-1');
+    expect(result.selectedCardId).toBe('card-1');
+  });
+
+  it('sets selectedCardId to null when null is passed', () => {
+    const state = makeGameState({ selectedCardId: 'card-1' });
+    const result = selectCard(state, null);
+    expect(result.selectedCardId).toBe(null);
+  });
+
+  it('updates selectedCardId from one value to another', () => {
+    const state = makeGameState({ selectedCardId: 'card-1' });
+    const result = selectCard(state, 'card-2');
+    expect(result.selectedCardId).toBe('card-2');
+  });
+
+  it('does not mutate the original state', () => {
+    const state = makeGameState();
+    selectCard(state, 'card-1');
+    expect(state.selectedCardId).toBe(null);
+  });
+
+  it('preserves all other state properties', () => {
+    const state = makeGameState({
+      drawMode: 1,
+      gameOver: false,
+      moves: [{ type: 'recycle-waste' as const }],
+    });
+    const result = selectCard(state, 'card-1');
+    expect(result.drawMode).toBe(1);
+    expect(result.gameOver).toBe(false);
+    expect(result.moves).toEqual([{ type: 'recycle-waste' }]);
+    expect(result.stock).toEqual([]);
+    expect(result.waste).toEqual([]);
+    expect(result.foundations).toEqual(state.foundations);
+    expect(result.tableau).toEqual(state.tableau);
+  });
+
+  it('returns a new state object (not the same reference)', () => {
+    const state = makeGameState();
+    const result = selectCard(state, 'card-1');
+    expect(result).not.toBe(state);
   });
 });
