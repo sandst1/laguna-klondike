@@ -6,7 +6,7 @@
 - [x] 1.3 Configure TailwindCSS + PostCSS
 - [x] 1.4 Configure ESLint + Prettier
 - [x] 1.5 Set up directory structure (`src/components/`, `src/game/`, `src/hooks/`, `src/types/`)
-- [ ] 1.6 Verify dev server runs (`npm run dev`)
+- [x] 1.6 Verify dev server runs (`npm run dev`)
 
 ## Phase 2: TypeScript Types
 - [ ] 2.1 Define `Suit`, `Rank`, `Color` types
