@@ -1,4 +1,4 @@
-import type { Card } from '../types';
+import type { Card, Pile } from '../types';
 import { getRankValue, isRedBlackOpposite } from './deck';
 
 export function canMoveToFoundation(card: Card, foundationTop: Card | null): boolean {
@@ -25,4 +25,14 @@ export function canMoveToTableau(card: Card, tableauTop: Card | null): boolean {
   }
 
   return getRankValue(card.rank) === getRankValue(tableauTop.rank) - 1;
+}
+
+export function canFlipTableau(pile: Pile): boolean {
+  if (pile.cards.length === 0) {
+    return false;
+  }
+
+  const topCard = pile.cards[pile.cards.length - 1];
+
+  return !topCard.faceUp;
 }
