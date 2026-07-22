@@ -20,7 +20,7 @@
 - [x] 3.1 Implement `createDeck()` — builds 52-card deck
 - [x] 3.2 Implement `shuffle(deck)` — Fisher-Yates shuffle
 - [x] 3.3 Implement `getRankValue(rank)` — numeric value (A=1, K=13)
-- [ ] 3.4 Implement `getColor(suit)` — returns 'red' or 'black'
+- [x] 3.4 Implement `getColor(suit)` — returns 'red' or 'black'
 - [ ] 3.5 Implement `isRedBlackOpposite(cardA, cardB)` — alternating color check
 - [ ] 3.6 Write unit tests for deck utilities (vitest)
 
