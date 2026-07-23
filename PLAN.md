@@ -1,20 +1,24 @@
 # Klondike Solitaire — Build Plan
 
 ## Overview
+
 A browser-based Klondike Solitaire built with **React**, **Vite**, and **TypeScript**.
 
 ## 0. Game Rules (Klondike Solitaire)
 
 ### Objective
+
 Build all 52 cards onto the four **foundation** piles, one per suit, in ascending order (A → 2 → 3 → ... → K).
 
 ### Setup
+
 - **Stock**: 24 cards dealt face-down.
 - **Waste**: top card of stock is turned face-up to the waste pile.
 - **Foundations**: 4 empty piles, one per suit.
-- **Tableau**: 7 columns. Column *n* has *n* cards (1 to 7). Only the top card of each column is face-up; all others are face-down.
+- **Tableau**: 7 columns. Column _n_ has _n_ cards (1 to 7). Only the top card of each column is face-up; all others are face-down.
 
 ### Valid Moves
+
 1. **Tableau to Tableau**: Place a card (or a sequence of descending cards) on another tableau column. The top card of the destination must be **one rank higher** and of the **opposite color** (e.g., red 7 on black 8). A **King** can be placed on an **empty** tableau column.
 2. **Tableau to Foundation**: Place the **Ace** on an empty foundation, then build up in suit (A → 2 → 3 → ... → K). Only cards of the same suit can be placed on that foundation.
 3. **Foundation to Tableau**: Move the top card of a foundation back to a tableau column if it follows the tableau rules above.
@@ -23,9 +27,11 @@ Build all 52 cards onto the four **foundation** piles, one per suit, in ascendin
 6. **Flip Tableau**: When a face-down card is exposed (all cards above it moved away), it is automatically turned face-up.
 
 ### Winning
+
 All four foundations contain a complete suit (13 cards each).
 
 ### Draw Modes
+
 - **Draw 3** (standard): each click reveals 3 cards from stock to waste.
 - **Draw 1** (easy): each click reveals 1 card. This is a toggleable option.
 
@@ -58,7 +64,7 @@ export type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 
 export type Color = 'red' | 'black';
 
 export interface Card {
-  id: string;          // `${suit}-${rank}`
+  id: string; // `${suit}-${rank}`
   suit: Suit;
   rank: Rank;
   color: Color;
@@ -74,14 +80,14 @@ export interface Pile {
 }
 
 export interface GameState {
-  deck: Card[];          // all 52 cards (shuffled)
-  stock: Card[];         // face-down draw pile
-  waste: Card[];         // face-up discard pile (top is last)
+  deck: Card[]; // all 52 cards (shuffled)
+  stock: Card[]; // face-down draw pile
+  waste: Card[]; // face-up discard pile (top is last)
   foundations: Card[][]; // 4 arrays, one per suit
-  tableau: Card[][];     // 7 arrays, one per column
+  tableau: Card[][]; // 7 arrays, one per column
   moves: number;
   gameOver: boolean;
-  drawMode: 1 | 3;       // draw 1 or draw 3 cards per click
+  drawMode: 1 | 3; // draw 1 or draw 3 cards per click
   selectedCardId: string | null; // currently selected card for click-to-move
 }
 
@@ -99,6 +105,7 @@ export type Move =
 Pure functions in `src/game/`:
 
 ### `deck.ts`
+
 - `createDeck()` → builds 52-card deck
 - `shuffle(deck)` → Fisher-Yates shuffle
 - `getRankValue(rank)` → numeric value for comparison (A=1, K=13)
@@ -106,12 +113,14 @@ Pure functions in `src/game/`:
 - `isRedBlackOpposite(a, b)` → for alternating color rule
 
 ### `rules.ts`
+
 - `canMoveToFoundation(card, foundationTop)` → A on empty, K on A, same suit
 - `canMoveToTableau(card, tableauTop)` → K on empty, descending rank, alternating colors
 - `canFlipTableau(pile)` → top card face-down → can flip
 - `getValidMoves(state, card)` → returns list of valid drop targets
 
 ### `game.ts`
+
 - `dealGame()` → shuffle, deal 7 tableau piles (1–7 cards), remaining to stock
 - `drawFromStock(state)` → draw 3 cards to waste (or 1); recycle if empty
 - `moveCard(state, move)` → immutable state update applying a move
@@ -141,19 +150,20 @@ App
 
 ### Component Details
 
-| Component | Props | Responsibility |
-|---|---|---|
-| `Card` | `card`, `onDragStart`, `onClick`, `isSelected` | Renders a single card; handles flip animation, color, suit symbol |
-| `TableauPile` | `pile`, `index`, `onCardClick`, `onDrop` | Vertical fan layout; reveals face-down cards; drop zone for sequences |
-| `FoundationPile` | `cards`, `suit`, `onCardClick`, `onDrop` | Single-card display; accepts valid foundation moves |
-| `StockPile` | `count`, `onClick` | Face-down stack; shows count badge; click to draw |
-| `WastePile` | `card`, `onClick` | Shows top waste card; click to draw/recycle |
-| `GameBoard` | `gameState`, `onMove` | Layout container; orchestrates drag-drop between piles |
-| `GameControls` | `moves`, `onNewGame`, `onUndo` | Buttons and move counter |
+| Component        | Props                                          | Responsibility                                                        |
+| ---------------- | ---------------------------------------------- | --------------------------------------------------------------------- |
+| `Card`           | `card`, `onDragStart`, `onClick`, `isSelected` | Renders a single card; handles flip animation, color, suit symbol     |
+| `TableauPile`    | `pile`, `index`, `onCardClick`, `onDrop`       | Vertical fan layout; reveals face-down cards; drop zone for sequences |
+| `FoundationPile` | `cards`, `suit`, `onCardClick`, `onDrop`       | Single-card display; accepts valid foundation moves                   |
+| `StockPile`      | `count`, `onClick`                             | Face-down stack; shows count badge; click to draw                     |
+| `WastePile`      | `card`, `onClick`                              | Shows top waste card; click to draw/recycle                           |
+| `GameBoard`      | `gameState`, `onMove`                          | Layout container; orchestrates drag-drop between piles                |
+| `GameControls`   | `moves`, `onNewGame`, `onUndo`                 | Buttons and move counter                                              |
 
 ## 5. Interaction Model
 
 ### Drag & Drop
+
 - Use `dnd-kit/core` for drag sensors
 - Draggable: any face-up card (top card of stock/waste, top card of foundation, any face-up tableau card)
 - Droppable: tableau columns, foundation piles, waste (rare)
@@ -161,12 +171,14 @@ App
 - On drop: validate move via `rules.ts`, then dispatch `moveCard`
 
 ### Click-to-Move
+
 - Click a face-up card → highlight valid drop targets
 - Click a highlighted target → execute move
 - Click stock → draw 3 cards (or 1)
 - Double-click a card → auto-move to foundation if valid
 
 ### Visual Feedback
+
 - Valid drop zones get a green highlight / drop shadow
 - Selected card gets a lift effect
 - Invalid drops bounce back

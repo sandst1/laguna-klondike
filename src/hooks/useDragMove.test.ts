@@ -37,6 +37,7 @@ const makeGameState = (overrides: Partial<GameState> = {}): GameState => ({
   gameOver: false,
   drawMode: 3,
   selectedCardId: null,
+  undoHistory: [],
   ...overrides,
 });
 
@@ -45,7 +46,7 @@ describe('useDragMove', () => {
     it('returns null activeCardId and empty validMoves initially', () => {
       const state = makeGameState();
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       expect(result.current.activeCardId).toBe(null);
       expect(result.current.activeCard).toBe(null);
@@ -58,7 +59,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -72,7 +73,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -88,7 +89,7 @@ describe('useDragMove', () => {
       const faceDown = makeCard({ id: 'fd', faceUp: false });
       const state = makeGameState({ stock: [faceDown] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('fd');
@@ -102,7 +103,7 @@ describe('useDragMove', () => {
     it('does not set activeCardId when the card is not found in the state', () => {
       const state = makeGameState();
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('nonexistent');
@@ -116,10 +117,18 @@ describe('useDragMove', () => {
     it('finds the card in the tableau', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({
-        tableau: [{ type: 'tableau', cards: [ace] }, emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau(), emptyTableau()],
+        tableau: [
+          { type: 'tableau', cards: [ace] },
+          emptyTableau(),
+          emptyTableau(),
+          emptyTableau(),
+          emptyTableau(),
+          emptyTableau(),
+          emptyTableau(),
+        ],
       });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -133,7 +142,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'wh', suit: 'hearts', rank: 'A', color: 'red' });
       const state = makeGameState({ waste: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('wh');
@@ -146,10 +155,15 @@ describe('useDragMove', () => {
     it('finds the card in a foundation', () => {
       const ace = makeCard({ id: 'fh', suit: 'hearts', rank: 'A', color: 'red' });
       const state = makeGameState({
-        foundations: [{ type: 'foundation', cards: [ace] }, emptyFoundation(), emptyFoundation(), emptyFoundation()],
+        foundations: [
+          { type: 'foundation', cards: [ace] },
+          emptyFoundation(),
+          emptyFoundation(),
+          emptyFoundation(),
+        ],
       });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('fh');
@@ -165,7 +179,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -188,7 +202,7 @@ describe('useDragMove', () => {
       const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [two] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('2h');
@@ -207,7 +221,7 @@ describe('useDragMove', () => {
     it('returns false when no card is being dragged', () => {
       const state = makeGameState();
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       const target: DropTarget = { pileType: 'foundation', index: 0 };
       let success: boolean;
@@ -223,7 +237,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -245,7 +259,7 @@ describe('useDragMove', () => {
       const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [two] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('2h');
@@ -269,7 +283,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -292,7 +306,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -315,7 +329,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -329,7 +343,7 @@ describe('useDragMove', () => {
       const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [two] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('2h');
@@ -342,7 +356,7 @@ describe('useDragMove', () => {
     it('returns false when no card is being dragged', () => {
       const state = makeGameState();
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       const target: DropTarget = { pileType: 'foundation', index: 0 };
       expect(result.current.isValidDropTarget(target)).toBe(false);
@@ -352,7 +366,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -368,7 +382,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -384,7 +398,7 @@ describe('useDragMove', () => {
     it('returns an empty array when no card is being dragged', () => {
       const state = makeGameState();
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       expect(result.current.getValidDropTargets()).toEqual([]);
     });
@@ -395,7 +409,7 @@ describe('useDragMove', () => {
       const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
       const state = makeGameState({ stock: [ace] });
       const move = vi.fn();
-      const { result } = renderHook(() => useDragMove(state, move));
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
 
       act(() => {
         result.current.handleDragStart('ah');
@@ -406,6 +420,264 @@ describe('useDragMove', () => {
         activeCard: ace,
         validMoves: result.current.validMoves,
       });
+    });
+  });
+
+  describe('dragging cards from the waste pile', () => {
+    it('computes validMoves with waste-to-foundation move type for a waste card', () => {
+      const ace = makeCard({ id: 'wh', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [ace] });
+      const move = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
+
+      act(() => {
+        result.current.handleDragStart('wh');
+      });
+
+      expect(result.current.validMoves.length).toBeGreaterThan(0);
+      for (const validMove of result.current.validMoves) {
+        expect(validMove.cardId).toBe('wh');
+        expect(validMove.move.type).toBe('waste-to-foundation');
+      }
+    });
+
+    it('computes validMoves with waste-to-tableau move type for a waste card that can move to tableau', () => {
+      const king = makeCard({ id: 'wk', suit: 'hearts', rank: 'K', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [king] });
+      const move = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
+
+      act(() => {
+        result.current.handleDragStart('wk');
+      });
+
+      const tableauMoves = result.current.validMoves.filter(
+        (m) => m.move.type === 'waste-to-tableau'
+      );
+      expect(tableauMoves.length).toBe(7);
+    });
+
+    it('dispatches a waste-to-foundation move when dropping on a valid foundation target', () => {
+      const ace = makeCard({ id: 'wh', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [ace] });
+      const move = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
+
+      act(() => {
+        result.current.handleDragStart('wh');
+      });
+
+      const target: DropTarget = { pileType: 'foundation', index: 0 };
+      let success: boolean;
+      act(() => {
+        success = result.current.handleDrop(target);
+      });
+
+      expect(success!).toBe(true);
+      expect(move).toHaveBeenCalledTimes(1);
+      const dispatchedMove = move.mock.calls[0][0] as Move;
+      expect(dispatchedMove.cardId).toBe('wh');
+      expect(dispatchedMove.type).toBe('waste-to-foundation');
+      expect(dispatchedMove.toIndex).toBe(0);
+    });
+
+    it('dispatches a waste-to-tableau move when dropping on a valid tableau target', () => {
+      const king = makeCard({ id: 'wk', suit: 'hearts', rank: 'K', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [king] });
+      const move = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
+
+      act(() => {
+        result.current.handleDragStart('wk');
+      });
+
+      const target: DropTarget = { pileType: 'tableau', index: 0 };
+      let success: boolean;
+      act(() => {
+        success = result.current.handleDrop(target);
+      });
+
+      expect(success!).toBe(true);
+      expect(move).toHaveBeenCalledTimes(1);
+      const dispatchedMove = move.mock.calls[0][0] as Move;
+      expect(dispatchedMove.cardId).toBe('wk');
+      expect(dispatchedMove.type).toBe('waste-to-tableau');
+      expect(dispatchedMove.toIndex).toBe(0);
+    });
+
+    it('returns false when dropping a waste card on an invalid target', () => {
+      const two = makeCard({ id: 'w2', suit: 'hearts', rank: '2', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [two] });
+      const move = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
+
+      act(() => {
+        result.current.handleDragStart('w2');
+      });
+
+      const target: DropTarget = { pileType: 'foundation', index: 0 };
+      let success: boolean;
+      act(() => {
+        success = result.current.handleDrop(target);
+      });
+
+      expect(success!).toBe(false);
+      expect(move).not.toHaveBeenCalled();
+    });
+
+    it('isValidDropTarget returns true for a valid foundation target when dragging from waste', () => {
+      const ace = makeCard({ id: 'wh', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [ace] });
+      const move = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
+
+      act(() => {
+        result.current.handleDragStart('wh');
+      });
+
+      const target: DropTarget = { pileType: 'foundation', index: 0 };
+      expect(result.current.isValidDropTarget(target)).toBe(true);
+    });
+
+    it('isValidDropTarget returns true for a valid tableau target when dragging a King from waste', () => {
+      const king = makeCard({ id: 'wk', suit: 'hearts', rank: 'K', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [king] });
+      const move = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), vi.fn()));
+
+      act(() => {
+        result.current.handleDragStart('wk');
+      });
+
+      const target: DropTarget = { pileType: 'tableau', index: 0 };
+      expect(result.current.isValidDropTarget(target)).toBe(true);
+    });
+  });
+
+  describe('handleCardDoubleClick', () => {
+    it('calls autoMove when a face-up card can move to a foundation', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+      const state = makeGameState({ stock: [ace] });
+      const move = vi.fn();
+      const autoMove = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), autoMove));
+
+      let success: boolean;
+      act(() => {
+        success = result.current.handleCardDoubleClick('ah');
+      });
+
+      expect(success!).toBe(true);
+      expect(autoMove).toHaveBeenCalledTimes(1);
+      expect(autoMove).toHaveBeenCalledWith(ace);
+    });
+
+    it('does not call autoMove when the card cannot move to any foundation', () => {
+      const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red', faceUp: true });
+      const state = makeGameState({ stock: [two] });
+      const move = vi.fn();
+      const autoMove = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), autoMove));
+
+      let success: boolean;
+      act(() => {
+        success = result.current.handleCardDoubleClick('2h');
+      });
+
+      expect(success!).toBe(false);
+      expect(autoMove).not.toHaveBeenCalled();
+    });
+
+    it('does not call autoMove when the card is face-down', () => {
+      const faceDown = makeCard({ id: 'fd', faceUp: false });
+      const state = makeGameState({ stock: [faceDown] });
+      const move = vi.fn();
+      const autoMove = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), autoMove));
+
+      let success: boolean;
+      act(() => {
+        success = result.current.handleCardDoubleClick('fd');
+      });
+
+      expect(success!).toBe(false);
+      expect(autoMove).not.toHaveBeenCalled();
+    });
+
+    it('does not call autoMove when the card is not found', () => {
+      const state = makeGameState();
+      const move = vi.fn();
+      const autoMove = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), autoMove));
+
+      let success: boolean;
+      act(() => {
+        success = result.current.handleCardDoubleClick('nonexistent');
+      });
+
+      expect(success!).toBe(false);
+      expect(autoMove).not.toHaveBeenCalled();
+    });
+
+    it('does not call autoMove when a card is being dragged', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+      const state = makeGameState({ stock: [ace] });
+      const move = vi.fn();
+      const autoMove = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), autoMove));
+
+      act(() => {
+        result.current.handleDragStart('ah');
+      });
+
+      let success: boolean;
+      act(() => {
+        success = result.current.handleCardDoubleClick('ah');
+      });
+
+      expect(success!).toBe(false);
+      expect(autoMove).not.toHaveBeenCalled();
+    });
+
+    it('calls autoMove for a waste card that can move to a foundation', () => {
+      const ace = makeCard({ id: 'wh', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+      const state = makeGameState({ waste: [ace] });
+      const move = vi.fn();
+      const autoMove = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), autoMove));
+
+      let success: boolean;
+      act(() => {
+        success = result.current.handleCardDoubleClick('wh');
+      });
+
+      expect(success!).toBe(true);
+      expect(autoMove).toHaveBeenCalledWith(ace);
+    });
+
+    it('calls autoMove when the foundation top is the same suit and next rank', () => {
+      const two = makeCard({ id: '2h', suit: 'hearts', rank: '2', color: 'red', faceUp: true });
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: true });
+      const state = makeGameState({
+        stock: [two],
+        foundations: [
+          { type: 'foundation', cards: [ace] },
+          emptyFoundation(),
+          emptyFoundation(),
+          emptyFoundation(),
+        ],
+      });
+      const move = vi.fn();
+      const autoMove = vi.fn();
+      const { result } = renderHook(() => useDragMove(state, move, vi.fn(), autoMove));
+
+      let success: boolean;
+      act(() => {
+        success = result.current.handleCardDoubleClick('2h');
+      });
+
+      expect(success!).toBe(true);
+      expect(autoMove).toHaveBeenCalledWith(two);
     });
   });
 });

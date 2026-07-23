@@ -4,21 +4,7 @@ const SUITS: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
 
 const RED_SUITS: Suit[] = ['hearts', 'diamonds'];
 
-const RANKS: Rank[] = [
-  'A',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  '9',
-  '10',
-  'J',
-  'Q',
-  'K',
-];
+const RANKS: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 export function createDeck(): Card[] {
   const deck: Card[] = [];

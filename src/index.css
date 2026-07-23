@@ -11,8 +11,7 @@
     --accent-bg: rgba(170, 59, 255, 0.1);
     --accent-border: rgba(170, 59, 255, 0.5);
     --social-bg: rgba(244, 243, 236, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+    --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
     --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
     --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -48,8 +47,7 @@
       --accent-bg: rgba(192, 132, 252, 0.15);
       --accent-border: rgba(192, 132, 252, 0.5);
       --social-bg: rgba(47, 48, 58, 0.5);
-      --shadow:
-        rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+      --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
     }
 
     #social .button-icon {
@@ -69,6 +67,11 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+
+    @media (max-width: 639px) {
+      width: 100%;
+      border: none;
+    }
   }
 
   body {
@@ -174,28 +177,49 @@
     transform: rotateY(-180deg);
   }
 
-   .card-back {
-     background: radial-gradient(
-         circle at 50% 50%,
-         rgba(255, 255, 255, 0.08) 0%,
-         transparent 60%
-       ),
-       radial-gradient(
-         circle at 30% 30%,
-         rgba(255, 255, 255, 0.1) 0%,
-         transparent 50%
-       ),
-       radial-gradient(
-         circle at 70% 70%,
-         rgba(255, 255, 255, 0.1) 0%,
-         transparent 50%
-       );
-     background-size: 100% 100%, 150% 150%, 150% 150%;
-   }
+  .card-back {
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+      radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    background-size:
+      100% 100%,
+      150% 150%,
+      150% 150%;
+  }
 
-   .card-selected[data-selected='true'] {
-     @apply ring-2 ring-offset-2 ring-blue-400 scale-105 z-10;
-   }
+  .card-selected[data-selected='true'] {
+    @apply ring-2 ring-offset-2 ring-blue-400 scale-105 z-10;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      ring-offset-color 0.2s ease;
+  }
+
+  .card-hover {
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  .card-hover:hover {
+    transform: scale(1.03);
+    box-shadow:
+      rgba(0, 0, 0, 0.15) 0 10px 15px -3px,
+      rgba(0, 0, 0, 0.1) 0 4px 6px -2px;
+  }
+
+  .move-animation-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .move-animation-overlay[data-animating='true'] {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
   .counter {
     font-size: 16px;
@@ -242,8 +266,7 @@
       z-index: 1;
       top: 34px;
       height: 28px;
-      transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-        scale(1.4);
+      transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4);
     }
 
     .vite {
@@ -251,8 +274,7 @@
       top: 107px;
       height: 26px;
       width: auto;
-      transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-        scale(0.8);
+      transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8);
     }
   }
 
@@ -383,5 +405,251 @@
       right: 0;
       border-right-color: var(--border);
     }
+  }
+
+  @media (max-width: 639px) {
+    .game-board {
+      padding: 12px 8px;
+      gap: 10px;
+    }
+
+    .game-board > .col-span-7 {
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .game-board > .col-span-7::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .game-board > .col-span-7::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .game-board > .col-span-7::-webkit-scrollbar-thumb {
+      background-color: var(--border);
+      border-radius: 3px;
+    }
+
+    .game-controls {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .stats-display {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .settings-panel {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  }
+}
+
+@layer components {
+  .high-contrast {
+    --hc-bg: #000000;
+    --hc-surface: #1a1a1a;
+    --hc-text: #ffffff;
+    --hc-text-muted: #e5e5e5;
+    --hc-border: #ffffff;
+    --hc-accent: #ffff00;
+    --hc-accent-text: #000000;
+    --hc-card-face: #ffffff;
+    --hc-card-face-text: #000000;
+    --hc-card-back: #ffffff;
+    --hc-card-back-text: #000000;
+    --hc-felt: #000000;
+    --hc-felt-border: #ffffff;
+    --hc-empty: #1a1a1a;
+    --hc-empty-border: #ffffff;
+    --hc-ring: #ffff00;
+    --hc-ring-offset: #000000;
+
+    background: var(--hc-bg);
+    color: var(--hc-text);
+  }
+
+  .high-contrast #root {
+    border-color: var(--hc-border);
+  }
+
+  .high-contrast h1,
+  .high-contrast h2 {
+    color: var(--hc-text);
+  }
+
+  .high-contrast code {
+    color: var(--hc-text);
+    background: var(--hc-surface);
+  }
+
+  .high-contrast .counter {
+    color: var(--hc-accent);
+    background: var(--hc-accent-bg);
+  }
+
+  .high-contrast .game-board {
+    --tw-bg-opacity: 1;
+    background-color: var(--hc-bg);
+  }
+
+  .high-contrast .game-controls,
+  .high-contrast .stats-display,
+  .high-contrast .settings-panel,
+  .high-contrast .draw-mode-toggle {
+    background-color: var(--hc-surface);
+    border-color: var(--hc-border);
+  }
+
+  .high-contrast .game-controls,
+  .high-contrast .stats-display,
+  .high-contrast .settings-panel,
+  .high-contrast .draw-mode-toggle {
+    color: var(--hc-text);
+  }
+
+  .high-contrast .game-controls span,
+  .high-contrast .stats-display span,
+  .high-contrast .settings-panel span,
+  .high-contrast .draw-mode-toggle span {
+    color: var(--hc-text-muted);
+  }
+
+  .high-contrast .game-controls [data-testid='move-counter'],
+  .high-contrast .stats-display [data-testid^='stats-'] {
+    color: var(--hc-text);
+  }
+
+  .high-contrast .game-controls button,
+  .high-contrast .stats-display button,
+  .high-contrast .settings-panel button,
+  .high-contrast .draw-mode-toggle button {
+    border-color: var(--hc-border);
+  }
+
+  .high-contrast .game-controls [data-testid='new-game-button'],
+  .high-contrast .game-controls [data-testid='new-game-button']:hover {
+    background-color: var(--hc-accent);
+    color: var(--hc-accent-text);
+  }
+
+  .high-contrast .game-controls [data-testid='undo-button'],
+  .high-contrast .game-controls [data-testid='undo-button']:hover {
+    background-color: var(--hc-accent);
+    color: var(--hc-accent-text);
+  }
+
+  .high-contrast .stats-display [data-testid='stats-reset'],
+  .high-contrast .stats-display [data-testid='stats-reset']:hover {
+    background-color: var(--hc-surface);
+    color: var(--hc-text);
+  }
+
+  .high-contrast .settings-panel [data-testid='sound-toggle'],
+  .high-contrast .settings-panel [data-testid='high-contrast-toggle'],
+  .high-contrast .draw-mode-toggle [data-testid^='draw-mode'] {
+    border-color: var(--hc-border);
+  }
+
+  .high-contrast .settings-panel [data-testid='sound-toggle'][aria-pressed='true'],
+  .high-contrast .settings-panel [data-testid='high-contrast-toggle'][aria-pressed='true'],
+  .high-contrast .draw-mode-toggle [data-testid^='draw-mode'][aria-pressed='true'] {
+    background-color: var(--hc-accent);
+    color: var(--hc-accent-text);
+  }
+
+  .high-contrast .settings-panel [data-testid='sound-toggle'][aria-pressed='false']:hover,
+  .high-contrast .settings-panel [data-testid='high-contrast-toggle'][aria-pressed='false']:hover,
+  .high-contrast .draw-mode-toggle [data-testid^='draw-mode'][aria-pressed='false']:hover {
+    background-color: var(--hc-surface);
+    color: var(--hc-text);
+  }
+
+  .high-contrast .card-selected[data-selected='true'] {
+    box-shadow:
+      0 0 0 2px var(--hc-ring-offset),
+      0 0 0 4px var(--hc-ring);
+    transform: scale(1.05);
+  }
+
+  .high-contrast .card-hover:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 2px var(--hc-ring);
+  }
+
+  .high-contrast .card-flip-inner[data-face-up='true'] {
+    background-color: var(--hc-card-face);
+    color: var(--hc-card-face-text);
+  }
+
+  .high-contrast .card-back,
+  .high-contrast .card-back * {
+    background-color: var(--hc-card-back);
+    color: var(--hc-card-back-text);
+  }
+
+  .high-contrast .card-back svg {
+    color: var(--hc-card-back-text);
+  }
+
+  .high-contrast .card-back rect {
+    fill: var(--hc-card-back-text);
+  }
+
+  .high-contrast .card-back path {
+    stroke: var(--hc-card-back-text);
+  }
+
+  .high-contrast .card-back .border-green-800\\/50,
+  .high-contrast .card-back .border-green-800\/50 {
+    border-color: var(--hc-card-back-text);
+  }
+
+  .high-contrast .card-back .bg-green-800\\/60,
+  .high-contrast .card-back .bg-green-800\/60 {
+    background-color: var(--hc-card-back-text);
+  }
+
+  .high-contrast .stock-pile,
+  .high-contrast .foundation-pile,
+  .high-contrast .waste-pile,
+  .high-contrast .tableau-pile {
+    --tw-ring-color: var(--hc-ring);
+    --tw-ring-offset-color: var(--hc-ring-offset);
+  }
+
+  .high-contrast .stock-pile,
+  .high-contrast .foundation-pile,
+  .high-contrast .waste-pile,
+  .high-contrast .tableau-pile {
+    border-color: var(--hc-felt-border);
+    background-color: var(--hc-felt);
+  }
+
+  .high-contrast .tableau-pile > div[aria-label*='face-down'],
+  .high-contrast .stock-pile {
+    border-color: var(--hc-felt-border);
+    background-color: var(--hc-felt);
+  }
+
+  .high-contrast .foundation-pile > div[aria-label*='Empty'],
+  .high-contrast .waste-pile > div[aria-label*='Empty'],
+  .high-contrast .tableau-pile > div[aria-label*='Empty'] {
+    border-color: var(--hc-empty-border);
+    background-color: var(--hc-empty);
+  }
+
+  .high-contrast .tableau-pile > div[aria-label*='face-down'] > span,
+  .high-contrast .stock-pile > span {
+    background-color: var(--hc-accent);
+    color: var(--hc-accent-text);
+  }
+
+  .high-contrast .move-animation-overlay {
+    z-index: 100;
   }
 }

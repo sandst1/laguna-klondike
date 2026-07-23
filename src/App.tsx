@@ -1,121 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useEffect } from 'react';
+import { GameBoard } from './components/GameBoard';
+import { GameControls } from './components/GameControls';
+import { SettingsPanel } from './components/SettingsPanel';
+import { StatsDisplay } from './components/StatsDisplay';
+import { DrawModeToggle } from './components/DrawModeToggle';
+import { useGameState } from './hooks/useGameState';
+import { useSettings } from './hooks/useSettings';
+import { useStats } from './hooks/useStats';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { settings, setDrawMode, setSound, setHighContrast } = useSettings();
+  const { state, actions, gameOver } = useGameState(settings.drawMode, settings.sound);
+  const { stats, recordGame, resetStats } = useStats();
+
+  useEffect(() => {
+    if (gameOver) {
+      recordGame(true);
+    }
+  }, [gameOver, recordGame]);
+
+  const handleNewGame = () => {
+    actions.deal(settings.drawMode);
+  };
+
+  const handleUndo = () => {
+    actions.undo();
+  };
+
+  const handleSoundChange = (sound: boolean) => {
+    setSound(sound);
+  };
+
+  const handleHighContrastChange = (highContrast: boolean) => {
+    setHighContrast(highContrast);
+  };
+
+  const handleDrawModeChange = (drawMode: typeof settings.drawMode) => {
+    setDrawMode(drawMode);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="flex min-h-screen flex-col items-center gap-4 bg-green-950 p-4 text-slate-100">
+      <header className="flex flex-col items-center gap-2">
+        <h1 className="text-3xl font-bold">Klondike Solitaire</h1>
+        <DrawModeToggle drawMode={settings.drawMode} onChange={handleDrawModeChange} />
+      </header>
+
+      <main className="flex w-full max-w-4xl flex-col items-center gap-4">
+        <GameBoard
+          state={state}
+          move={actions.move}
+          draw={actions.draw}
+          selectCard={actions.selectCard}
+          autoMove={actions.autoMove}
+        />
+
+        <GameControls state={state} onNewGame={handleNewGame} onUndo={handleUndo} />
+
+        <div className="flex w-full flex-col items-center gap-2 sm:flex-row sm:justify-between">
+          <SettingsPanel
+            settings={settings}
+            onSoundChange={handleSoundChange}
+            onHighContrastChange={handleHighContrastChange}
+          />
+          <StatsDisplay stats={stats} onReset={resetStats} />
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+      </main>
+
+      {gameOver && (
+        <div
+          aria-label="You win!"
+          className="fixed inset-0 flex items-center justify-center bg-black/50"
         >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <div className="rounded-lg bg-green-900 p-8 text-center">
+            <h2 className="text-3xl font-bold">You Win!</h2>
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;

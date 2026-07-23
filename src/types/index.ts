@@ -1,19 +1,6 @@
 export type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades';
 
-export type Rank =
-  | 'A'
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8'
-  | '9'
-  | '10'
-  | 'J'
-  | 'Q'
-  | 'K';
+export type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
 
 export type Color = 'red' | 'black';
 
@@ -51,6 +38,7 @@ export interface TableauToTableauMove extends BaseMove {
   type: 'tableau-to-tableau';
   fromPile: PileType;
   toPile: PileType;
+  toIndex: number;
   cardId: string;
 }
 
@@ -58,17 +46,20 @@ export interface TableauToFoundationMove extends BaseMove {
   type: 'tableau-to-foundation';
   fromPile: PileType;
   toPile: PileType;
+  toIndex: number;
   cardId: string;
 }
 
 export interface WasteToTableauMove extends BaseMove {
   type: 'waste-to-tableau';
   toPile: PileType;
+  toIndex: number;
   cardId: string;
 }
 
 export interface WasteToFoundationMove extends BaseMove {
   type: 'waste-to-foundation';
+  toIndex: number;
   cardId: string;
 }
 
@@ -99,4 +90,5 @@ export interface GameState {
   gameOver: boolean;
   drawMode: DrawMode;
   selectedCardId: string | null;
+  undoHistory: GameState[];
 }

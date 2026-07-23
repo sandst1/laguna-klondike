@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { DrawMode } from '../types';
 
 export interface Settings {
@@ -29,7 +29,9 @@ export function loadSettings(): Settings {
       drawMode: parsed.drawMode === 1 ? 1 : 3,
       sound: typeof parsed.sound === 'boolean' ? parsed.sound : DEFAULT_SETTINGS.sound,
       highContrast:
-        typeof parsed.highContrast === 'boolean' ? parsed.highContrast : DEFAULT_SETTINGS.highContrast,
+        typeof parsed.highContrast === 'boolean'
+          ? parsed.highContrast
+          : DEFAULT_SETTINGS.highContrast,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -49,6 +51,17 @@ export function saveSettings(settings: Settings): void {
 
 export function useSettings() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    if (settings.highContrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+  }, [settings.highContrast]);
 
   const setDrawMode = useCallback((drawMode: DrawMode) => {
     setSettings((prev) => {

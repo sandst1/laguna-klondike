@@ -1,4 +1,6 @@
 import clsx from 'clsx';
+import { useDraggable } from '@dnd-kit/core';
+import type { CSSProperties } from 'react';
 import type { Card as CardData } from '../types';
 
 const SUIT_SYMBOL: Record<string, string> = {
@@ -20,18 +22,27 @@ export interface CardProps {
   card: CardData;
   isSelected?: boolean;
   onClick?: () => void;
+  onDoubleClick?: () => void;
+  draggable?: boolean;
   className?: string;
 }
 
-export function Card({ card, isSelected = false, onClick, className }: CardProps) {
+export function Card({
+  card,
+  isSelected = false,
+  onClick,
+  onDoubleClick,
+  draggable = false,
+  className,
+}: CardProps) {
   const symbol = SUIT_SYMBOL[card.suit];
   const label = RANK_LABEL[card.rank] ?? card.rank;
   const isRed = card.color === 'red';
 
   const baseClasses =
-    'relative rounded-lg border-2 border-white shadow-md select-none transition-all duration-150 ease-in-out';
+    'relative aspect-[7/10] w-full max-w-[80px] rounded-lg border-2 border-white shadow-md select-none transition-all duration-200 ease-out sm:max-w-[60px]';
 
-  const faceUpClasses = isRed ? 'bg-[#fefefe] text-red-600' : 'bg-[#fefefe] text-slate-900';
+  const faceUpClasses = isRed ? 'bg-white text-red-600' : 'bg-white text-slate-900';
 
   const faceDownClasses = 'bg-green-900 border-green-950';
 
@@ -40,23 +51,41 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
   const faceDownSideClasses =
     'absolute inset-0 flex items-center justify-center rounded-lg border-2 border-white';
 
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: card.id,
+    disabled: !draggable,
+  });
+
+  const style: CSSProperties = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      ref={setNodeRef}
+      draggable={draggable}
       aria-label={
         card.faceUp
           ? `${label} of ${card.suit}${isRed ? ' (red)' : ' (black)'} card`
           : 'face-down card'
       }
       data-selected={isSelected}
+      data-card-id={card.id}
       className={clsx(
         baseClasses,
         'card-flip',
         'card-selected',
-        onClick ? 'cursor-pointer' : 'cursor-default',
+        onClick && card.faceUp ? 'card-hover cursor-pointer' : 'cursor-default',
+        isDragging && 'opacity-50',
         className
       )}
+      style={style}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      {...attributes}
+      {...listeners}
     >
       <div className="card-flip-inner" data-face-up={card.faceUp}>
         <div className={clsx(faceDownSideClasses, faceDownClasses, 'card-back')} aria-hidden="true">
@@ -93,7 +122,7 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
               </div>
               <div className="relative z-10 flex h-2/3 w-2/3 items-center justify-center">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-3/4 w-3/4 rounded-full border-4 border-green-800/50" />
+                  <div className="h-3/4 w-3/4 rounded-full border-2 border-green-800/50" />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="flex h-full w-full items-center justify-around">
@@ -107,9 +136,9 @@ export function Card({ card, isSelected = false, onClick, className }: CardProps
           </div>
         </div>
         <div className={clsx(faceUpSideClasses, faceUpClasses)} aria-hidden="true">
-          <div className="relative flex h-full w-full flex-col items-center justify-between p-1 text-sm font-bold leading-tight">
+          <div className="relative flex h-full w-full flex-col items-center justify-between p-1 text-sm font-bold leading-tight sm:text-xs">
             <span className="self-start">{label}</span>
-            <span className="text-3xl" aria-hidden="true">
+            <span className="text-3xl sm:text-xl" aria-hidden="true">
               {symbol}
             </span>
             <span className="self-end rotate-180">{label}</span>

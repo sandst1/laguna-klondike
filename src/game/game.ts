@@ -1,10 +1,11 @@
 import type { Card, DrawMode, GameState, Move, Pile } from '../types';
-import { createDeck, getRankValue, shuffle } from './deck';
+import { createDeck, shuffle } from './deck';
 import { canMoveToFoundation } from './rules';
 
 const NUM_FOUNDATIONS = 4;
 const NUM_TABLEAU = 7;
 const TABLEAU_SIZES = [1, 2, 3, 4, 5, 6, 7];
+export const MAX_UNDO_HISTORY = 50;
 
 export function dealGame(drawMode: DrawMode = 3): GameState {
   const deck = shuffle(createDeck());
@@ -41,7 +42,25 @@ export function dealGame(drawMode: DrawMode = 3): GameState {
     gameOver: false,
     drawMode,
     selectedCardId: null,
+    undoHistory: [],
   };
+}
+
+function pushHistory(state: GameState): GameState {
+  const history = state.undoHistory;
+  const capped =
+    history.length >= MAX_UNDO_HISTORY
+      ? history.slice(history.length - (MAX_UNDO_HISTORY - 1))
+      : history;
+  return { ...state, undoHistory: [...capped, { ...state, undoHistory: [] }] };
+}
+
+export function undo(state: GameState): GameState {
+  if (state.undoHistory.length === 0) {
+    return state;
+  }
+  const previous = state.undoHistory[state.undoHistory.length - 1];
+  return { ...previous, undoHistory: state.undoHistory.slice(0, -1) };
 }
 
 function removeCardFromArray(cards: Card[], cardId: string): { removed: Card; rest: Card[] } {
@@ -54,23 +73,23 @@ function removeCardFromArray(cards: Card[], cardId: string): { removed: Card; re
   return { removed, rest };
 }
 
-function findFoundationTarget(state: GameState, card: Card): number {
-  for (let i = 0; i < state.foundations.length; i++) {
-    const f = state.foundations[i];
-    if (f.cards.length === 0) {
-      continue;
-    }
-    const top = f.cards[f.cards.length - 1];
-    if (top.suit === card.suit && getRankValue(card.rank) === getRankValue(top.rank) + 1) {
-      return i;
-    }
+function flipExposedTableauCard(tableau: Pile[], index: number): Pile[] {
+  const pile = tableau[index];
+  if (pile.cards.length === 0) {
+    return tableau;
   }
-  for (let i = 0; i < state.foundations.length; i++) {
-    if (state.foundations[i].cards.length === 0) {
-      return i;
-    }
+  const topCard = pile.cards[pile.cards.length - 1];
+  if (topCard.faceUp) {
+    return tableau;
   }
-  return -1;
+  return tableau.map((pile, i) => {
+    if (i === index) {
+      const newCards = [...pile.cards];
+      newCards[newCards.length - 1] = { ...newCards[newCards.length - 1], faceUp: true };
+      return { ...pile, cards: newCards };
+    }
+    return pile;
+  });
 }
 
 export function moveCard(state: GameState, move: Move): GameState {
@@ -78,10 +97,8 @@ export function moveCard(state: GameState, move: Move): GameState {
 
   switch (type) {
     case 'tableau-to-tableau': {
-      const { toPile } = move;
-      const sourceIndex = state.tableau.findIndex((p) =>
-        p.cards.some((c) => c.id === cardId)
-      );
+      const { toIndex } = move;
+      const sourceIndex = state.tableau.findIndex((p) => p.cards.some((c) => c.id === cardId));
       if (sourceIndex === -1) {
         return state;
       }
@@ -89,32 +106,28 @@ export function moveCard(state: GameState, move: Move): GameState {
         state.tableau[sourceIndex].cards,
         cardId
       );
-      const targetIndex = state.tableau.findIndex(
-        (p, i) => p.type === toPile && i !== sourceIndex
-      );
-      if (targetIndex === -1) {
+      if (toIndex < 0 || toIndex >= state.tableau.length || toIndex === sourceIndex) {
         return state;
       }
-      const newTableau = state.tableau.map((pile, i) => {
+      const updatedTableau = state.tableau.map((pile, i) => {
         if (i === sourceIndex) {
           return { ...pile, cards: sourceRest };
         }
-        if (i === targetIndex) {
+        if (i === toIndex) {
           return { ...pile, cards: [...pile.cards, removed] };
         }
         return pile;
       });
+      const newTableau = flipExposedTableauCard(updatedTableau, sourceIndex);
       return {
-        ...state,
+        ...pushHistory(state),
         tableau: newTableau,
         moves: [...state.moves, move],
       };
     }
 
     case 'tableau-to-foundation': {
-      const sourceIndex = state.tableau.findIndex((p) =>
-        p.cards.some((c) => c.id === cardId)
-      );
+      const sourceIndex = state.tableau.findIndex((p) => p.cards.some((c) => c.id === cardId));
       if (sourceIndex === -1) {
         return state;
       }
@@ -122,8 +135,8 @@ export function moveCard(state: GameState, move: Move): GameState {
         state.tableau[sourceIndex].cards,
         cardId
       );
-      let foundationTarget = findFoundationTarget(state, removed);
-      if (foundationTarget === -1) {
+      const foundationTarget = move.toIndex;
+      if (foundationTarget < 0 || foundationTarget >= state.foundations.length) {
         return state;
       }
       const newFoundations = state.foundations.map((pile, i) => {
@@ -132,14 +145,15 @@ export function moveCard(state: GameState, move: Move): GameState {
         }
         return pile;
       });
-      const newTableau = state.tableau.map((pile, i) => {
+      const updatedTableau = state.tableau.map((pile, i) => {
         if (i === sourceIndex) {
           return { ...pile, cards: sourceRest };
         }
         return pile;
       });
+      const newTableau = flipExposedTableauCard(updatedTableau, sourceIndex);
       return {
-        ...state,
+        ...pushHistory(state),
         tableau: newTableau,
         foundations: newFoundations,
         moves: [...state.moves, move],
@@ -152,9 +166,12 @@ export function moveCard(state: GameState, move: Move): GameState {
         return state;
       }
       const removed = state.waste[sourceIndex];
-      const newWaste = [...state.waste.slice(0, sourceIndex), ...state.waste.slice(sourceIndex + 1)];
-      const targetIndex = state.tableau.findIndex((p) => p.type === move.toPile);
-      if (targetIndex === -1) {
+      const newWaste = [
+        ...state.waste.slice(0, sourceIndex),
+        ...state.waste.slice(sourceIndex + 1),
+      ];
+      const targetIndex = move.toIndex;
+      if (targetIndex < 0 || targetIndex >= state.tableau.length) {
         return state;
       }
       const newTableau = state.tableau.map((pile, i) => {
@@ -164,7 +181,7 @@ export function moveCard(state: GameState, move: Move): GameState {
         return pile;
       });
       return {
-        ...state,
+        ...pushHistory(state),
         waste: newWaste,
         tableau: newTableau,
         moves: [...state.moves, move],
@@ -177,9 +194,12 @@ export function moveCard(state: GameState, move: Move): GameState {
         return state;
       }
       const removed = state.waste[sourceIndex];
-      const newWaste = [...state.waste.slice(0, sourceIndex), ...state.waste.slice(sourceIndex + 1)];
-      const foundationTarget = findFoundationTarget(state, removed);
-      if (foundationTarget === -1) {
+      const newWaste = [
+        ...state.waste.slice(0, sourceIndex),
+        ...state.waste.slice(sourceIndex + 1),
+      ];
+      const foundationTarget = move.toIndex;
+      if (foundationTarget < 0 || foundationTarget >= state.foundations.length) {
         return state;
       }
       const newFoundations = state.foundations.map((pile, i) => {
@@ -189,7 +209,7 @@ export function moveCard(state: GameState, move: Move): GameState {
         return pile;
       });
       return {
-        ...state,
+        ...pushHistory(state),
         waste: newWaste,
         foundations: newFoundations,
         moves: [...state.moves, move],
@@ -202,10 +222,13 @@ export function moveCard(state: GameState, move: Move): GameState {
         return state;
       }
       const removed = { ...state.stock[sourceIndex], faceUp: true };
-      const newStock = [...state.stock.slice(0, sourceIndex), ...state.stock.slice(sourceIndex + 1)];
+      const newStock = [
+        ...state.stock.slice(0, sourceIndex),
+        ...state.stock.slice(sourceIndex + 1),
+      ];
       const newWaste = [...state.waste, removed];
       return {
-        ...state,
+        ...pushHistory(state),
         stock: newStock,
         waste: newWaste,
         moves: [...state.moves, move],
@@ -218,7 +241,7 @@ export function moveCard(state: GameState, move: Move): GameState {
       }
       const recycled = state.waste.map((card) => ({ ...card, faceUp: false }));
       return {
-        ...state,
+        ...pushHistory(state),
         stock: [...state.stock, ...recycled],
         waste: [],
         moves: [...state.moves, move],
@@ -255,7 +278,7 @@ export function flipTableauCard(state: GameState, index: number): GameState {
   });
 
   return {
-    ...state,
+    ...pushHistory(state),
     tableau: newTableau,
   };
 }
@@ -292,6 +315,7 @@ export function autoMoveToFoundation(state: GameState, card: Card): GameState {
       type: 'tableau-to-foundation',
       fromPile: 'tableau',
       toPile: 'foundation',
+      toIndex: foundationTarget,
       cardId: card.id,
     });
   }
@@ -299,6 +323,7 @@ export function autoMoveToFoundation(state: GameState, card: Card): GameState {
   if (isInWaste) {
     return moveCard(state, {
       type: 'waste-to-foundation',
+      toIndex: foundationTarget,
       cardId: card.id,
     });
   }
@@ -308,7 +333,7 @@ export function autoMoveToFoundation(state: GameState, card: Card): GameState {
 
 export function selectCard(state: GameState, cardId: string | null): GameState {
   return {
-    ...state,
+    ...pushHistory(state),
     selectedCardId: cardId,
   };
 }
@@ -326,7 +351,7 @@ export function drawFromStock(state: GameState): GameState {
       cardId: card.id,
     }));
     return {
-      ...state,
+      ...pushHistory(state),
       stock: newStock,
       waste: newWaste,
       moves: [...moves, ...stockMoves],
@@ -345,7 +370,7 @@ export function drawFromStock(state: GameState): GameState {
       cardId: card.id,
     }));
     return {
-      ...state,
+      ...pushHistory(state),
       stock: newStock,
       waste: newWaste,
       moves: [...moves, recycleMove, ...stockMoves],

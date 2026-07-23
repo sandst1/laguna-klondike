@@ -1,5 +1,15 @@
+/**
+ * @vitest-environment jsdom
+ */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { loadSettings, saveSettings, DEFAULT_SETTINGS, STORAGE_KEY } from './useSettings';
+import { renderHook, act } from '@testing-library/react';
+import {
+  loadSettings,
+  saveSettings,
+  DEFAULT_SETTINGS,
+  STORAGE_KEY,
+  useSettings,
+} from './useSettings';
 import type { Settings } from './useSettings';
 
 const store: Record<string, string> = {};
@@ -40,7 +50,7 @@ describe('loadSettings', () => {
   it('loads settings from localStorage when valid', () => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ drawMode: 1, sound: false, highContrast: true }),
+      JSON.stringify({ drawMode: 1, sound: false, highContrast: true })
     );
 
     expect(loadSettings()).toEqual({ drawMode: 1, sound: false, highContrast: true });
@@ -55,7 +65,7 @@ describe('loadSettings', () => {
   it('falls back to defaults when drawMode is not 1 or 3', () => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ drawMode: 5, sound: 'yes', highContrast: null }),
+      JSON.stringify({ drawMode: 5, sound: 'yes', highContrast: null })
     );
 
     expect(loadSettings()).toEqual(DEFAULT_SETTINGS);
@@ -136,5 +146,170 @@ describe('saveSettings', () => {
     expect(() => saveSettings({ drawMode: 1, sound: false, highContrast: true })).not.toThrow();
 
     localStorage.setItem = original;
+  });
+});
+
+describe('useSettings', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it('returns default settings when no settings are stored', () => {
+    const { result } = renderHook(() => useSettings());
+    expect(result.current.settings).toEqual(DEFAULT_SETTINGS);
+    expect(result.current.drawMode).toBe(DEFAULT_SETTINGS.drawMode);
+    expect(result.current.sound).toBe(DEFAULT_SETTINGS.sound);
+    expect(result.current.highContrast).toBe(DEFAULT_SETTINGS.highContrast);
+  });
+
+  it('loads settings from localStorage on initialization', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ drawMode: 1, sound: false, highContrast: true })
+    );
+
+    const { result } = renderHook(() => useSettings());
+    expect(result.current.settings).toEqual({ drawMode: 1, sound: false, highContrast: true });
+    expect(result.current.drawMode).toBe(1);
+    expect(result.current.sound).toBe(false);
+    expect(result.current.highContrast).toBe(true);
+  });
+
+  it('persists drawMode change to localStorage', () => {
+    const { result } = renderHook(() => useSettings());
+
+    act(() => {
+      result.current.setDrawMode(1);
+    });
+
+    expect(result.current.drawMode).toBe(1);
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Settings;
+    expect(stored.drawMode).toBe(1);
+  });
+
+  it('persists sound change to localStorage', () => {
+    const { result } = renderHook(() => useSettings());
+
+    act(() => {
+      result.current.setSound(false);
+    });
+
+    expect(result.current.sound).toBe(false);
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Settings;
+    expect(stored.sound).toBe(false);
+  });
+
+  it('persists highContrast change to localStorage', () => {
+    const { result } = renderHook(() => useSettings());
+
+    act(() => {
+      result.current.setHighContrast(true);
+    });
+
+    expect(result.current.highContrast).toBe(true);
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Settings;
+    expect(stored.highContrast).toBe(true);
+  });
+
+  it('persists partial updates via updateSettings', () => {
+    const { result } = renderHook(() => useSettings());
+
+    act(() => {
+      result.current.updateSettings({ sound: false, highContrast: true });
+    });
+
+    expect(result.current.sound).toBe(false);
+    expect(result.current.highContrast).toBe(true);
+    expect(result.current.drawMode).toBe(DEFAULT_SETTINGS.drawMode);
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Settings;
+    expect(stored.sound).toBe(false);
+    expect(stored.highContrast).toBe(true);
+    expect(stored.drawMode).toBe(DEFAULT_SETTINGS.drawMode);
+  });
+
+  it('overwrites previous settings in localStorage on subsequent changes', () => {
+    const { result } = renderHook(() => useSettings());
+
+    act(() => {
+      result.current.setDrawMode(1);
+    });
+    act(() => {
+      result.current.setSound(false);
+    });
+
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Settings;
+    expect(stored.drawMode).toBe(1);
+    expect(stored.sound).toBe(false);
+    expect(stored.highContrast).toBe(DEFAULT_SETTINGS.highContrast);
+  });
+
+  it('reflects all settings changes across multiple updates', () => {
+    const { result } = renderHook(() => useSettings());
+
+    act(() => {
+      result.current.setDrawMode(1);
+    });
+    act(() => {
+      result.current.setSound(false);
+    });
+    act(() => {
+      result.current.setHighContrast(true);
+    });
+
+    expect(result.current.settings).toEqual({ drawMode: 1, sound: false, highContrast: true });
+    expect(result.current.drawMode).toBe(1);
+    expect(result.current.sound).toBe(false);
+    expect(result.current.highContrast).toBe(true);
+  });
+
+  describe('high-contrast DOM class', () => {
+    afterEach(() => {
+      document.documentElement.classList.remove('high-contrast');
+    });
+
+    it('does not add the high-contrast class when highContrast is false by default', () => {
+      renderHook(() => useSettings());
+
+      expect(document.documentElement.classList.contains('high-contrast')).toBe(false);
+    });
+
+    it('adds the high-contrast class when highContrast is enabled', () => {
+      const { result } = renderHook(() => useSettings());
+
+      act(() => {
+        result.current.setHighContrast(true);
+      });
+
+      expect(document.documentElement.classList.contains('high-contrast')).toBe(true);
+    });
+
+    it('removes the high-contrast class when highContrast is disabled', () => {
+      const { result } = renderHook(() => useSettings());
+
+      act(() => {
+        result.current.setHighContrast(true);
+      });
+      expect(document.documentElement.classList.contains('high-contrast')).toBe(true);
+
+      act(() => {
+        result.current.setHighContrast(false);
+      });
+      expect(document.documentElement.classList.contains('high-contrast')).toBe(false);
+    });
+
+    it('adds the high-contrast class on initialization when stored as true', () => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ drawMode: 3, sound: true, highContrast: true })
+      );
+
+      renderHook(() => useSettings());
+
+      expect(document.documentElement.classList.contains('high-contrast')).toBe(true);
+    });
   });
 });

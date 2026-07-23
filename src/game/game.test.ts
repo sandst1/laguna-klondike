@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { autoMoveToFoundation, checkWin, dealGame, drawFromStock, flipTableauCard, moveCard, selectCard } from './game';
+import {
+  autoMoveToFoundation,
+  checkWin,
+  dealGame,
+  drawFromStock,
+  flipTableauCard,
+  moveCard,
+  selectCard,
+  undo,
+  MAX_UNDO_HISTORY,
+} from './game';
 import { createDeck } from './deck';
 
 describe('dealGame', () => {
@@ -108,10 +118,7 @@ describe('dealGame', () => {
 
   it('preserves all deck properties (suit, rank, color) on dealt cards', () => {
     const state = dealGame();
-    const allCards = [
-      ...state.stock,
-      ...state.tableau.flatMap((p) => p.cards),
-    ];
+    const allCards = [...state.stock, ...state.tableau.flatMap((p) => p.cards)];
     const originalDeck = createDeck();
     const originalById = new Map(originalDeck.map((c) => [c.id, c]));
     for (const card of allCards) {
@@ -129,6 +136,17 @@ describe('dealGame', () => {
     const order1 = [...state1.tableau.flatMap((p) => p.cards), ...state1.stock].map((c) => c.id);
     const order2 = [...state2.tableau.flatMap((p) => p.cards), ...state2.stock].map((c) => c.id);
     expect(order1).not.toEqual(order2);
+  });
+
+  it('produces a unique card order across many deals', () => {
+    const seenOrders = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      const state = dealGame();
+      const order = [...state.tableau.flatMap((p) => p.cards), ...state.stock].map((c) => c.id).join(',');
+      expect(seenOrders.has(order)).toBe(false);
+      seenOrders.add(order);
+    }
+    expect(seenOrders.size).toBe(100);
   });
 });
 
@@ -148,6 +166,7 @@ describe('drawFromStock', () => {
     gameOver: false,
     drawMode: 3,
     selectedCardId: null,
+    undoHistory: [],
     ...overrides,
   });
 
@@ -189,10 +208,7 @@ describe('drawFromStock', () => {
   });
 
   it('draws fewer cards when stock has fewer than drawMode cards', () => {
-    const stock = [
-      makeCard({ id: '1', faceUp: false }),
-      makeCard({ id: '2', faceUp: false }),
-    ];
+    const stock = [makeCard({ id: '1', faceUp: false }), makeCard({ id: '2', faceUp: false })];
     const state = makeGameState({ stock, drawMode: 3 });
     const result = drawFromStock(state);
     expect(result.waste).toHaveLength(2);
@@ -288,6 +304,7 @@ describe('drawFromStock', () => {
     expect(result.waste).toHaveLength(3);
     expect(result.stock).toHaveLength(2);
     expect(result.waste.map((c) => c.id)).toEqual(['3', '4', '5']);
+    expect(result.stock.map((c) => c.id)).toEqual(['1', '2']);
   });
 
   it('recycles waste and draws 1 card when stock is empty (draw-1)', () => {
@@ -411,6 +428,7 @@ describe('flipTableauCard', () => {
     gameOver: false,
     drawMode: 3,
     selectedCardId: null,
+    undoHistory: [],
     ...overrides,
   });
 
@@ -563,6 +581,7 @@ describe('autoMoveToFoundation', () => {
     gameOver: false,
     drawMode: 3,
     selectedCardId: null,
+    undoHistory: [],
     ...overrides,
   });
 
@@ -613,7 +632,13 @@ describe('autoMoveToFoundation', () => {
   });
 
   it('returns the same state when the card is face-down', () => {
-    const faceDownAce = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red', faceUp: false });
+    const faceDownAce = makeCard({
+      id: 'ah',
+      suit: 'hearts',
+      rank: 'A',
+      color: 'red',
+      faceUp: false,
+    });
     const state = makeGameState({
       tableau: [
         { type: 'tableau', cards: [faceDownAce] },
@@ -707,6 +732,7 @@ describe('checkWin', () => {
     gameOver: false,
     drawMode: 3,
     selectedCardId: null,
+    undoHistory: [],
     ...overrides,
   });
 
@@ -761,9 +787,7 @@ describe('checkWin', () => {
   });
 
   it('returns false when a foundation has more than 13 cards', () => {
-    const overFull = Array.from({ length: 14 }, (_, i) =>
-      makeCard({ id: `f0-${i}` })
-    );
+    const overFull = Array.from({ length: 14 }, (_, i) => makeCard({ id: `f0-${i}` }));
     const state = makeGameState({
       foundations: [
         { type: 'foundation', cards: overFull },
@@ -792,6 +816,7 @@ describe('moveCard', () => {
     gameOver: false,
     drawMode: 3,
     selectedCardId: null,
+    undoHistory: [],
     ...overrides,
   });
 
@@ -823,6 +848,7 @@ describe('moveCard', () => {
         type: 'tableau-to-tableau' as const,
         fromPile: 'tableau' as const,
         toPile: 'tableau' as const,
+        toIndex: 1,
         cardId: '7h',
       };
       const result = moveCard(state, move);
@@ -849,6 +875,7 @@ describe('moveCard', () => {
         type: 'tableau-to-tableau' as const,
         fromPile: 'tableau' as const,
         toPile: 'tableau' as const,
+        toIndex: 1,
         cardId: '7h',
       };
       moveCard(state, move);
@@ -874,6 +901,7 @@ describe('moveCard', () => {
         type: 'tableau-to-tableau' as const,
         fromPile: 'tableau' as const,
         toPile: 'tableau' as const,
+        toIndex: 1,
         cardId: '7h',
       };
       const result = moveCard(state, move);
@@ -887,10 +915,117 @@ describe('moveCard', () => {
         type: 'tableau-to-tableau' as const,
         fromPile: 'tableau' as const,
         toPile: 'tableau' as const,
+        toIndex: 0,
         cardId: 'nonexistent',
       };
       const result = moveCard(state, move);
       expect(result).toBe(state);
+    });
+
+    it('auto-flips the exposed face-down card in the source tableau pile', () => {
+      const faceDown = makeCard({ id: 'fd', faceUp: false });
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [faceDown, redSeven] },
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        toIndex: 1,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(1);
+      expect(result.tableau[0].cards[0].faceUp).toBe(true);
+      expect(result.tableau[0].cards[0].id).toBe('fd');
+    });
+
+    it('does not auto-flip when the source tableau pile becomes empty', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [redSeven] },
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        toIndex: 1,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(0);
+    });
+
+    it('places a King on an empty tableau pile', () => {
+      const king = makeCard({ id: 'kh', suit: 'hearts', rank: 'K', color: 'red' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [king] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        toIndex: 1,
+        cardId: 'kh',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(0);
+      expect(result.tableau[1].cards).toHaveLength(1);
+      expect(result.tableau[1].cards[0].id).toBe('kh');
+    });
+
+    it('does not auto-flip when the exposed card is already face-up', () => {
+      const faceUp = makeCard({ id: 'fu', faceUp: true });
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [faceUp, redSeven] },
+          { type: 'tableau', cards: [blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        toIndex: 1,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(1);
+      expect(result.tableau[0].cards[0].faceUp).toBe(true);
     });
   });
 
@@ -912,6 +1047,7 @@ describe('moveCard', () => {
         type: 'tableau-to-foundation' as const,
         fromPile: 'tableau' as const,
         toPile: 'foundation' as const,
+        toIndex: 0,
         cardId: 'ah',
       };
       const result = moveCard(state, move);
@@ -944,6 +1080,7 @@ describe('moveCard', () => {
         type: 'tableau-to-foundation' as const,
         fromPile: 'tableau' as const,
         toPile: 'foundation' as const,
+        toIndex: 0,
         cardId: '2h',
       };
       const result = moveCard(state, move);
@@ -968,6 +1105,7 @@ describe('moveCard', () => {
         type: 'tableau-to-foundation' as const,
         fromPile: 'tableau' as const,
         toPile: 'foundation' as const,
+        toIndex: 0,
         cardId: 'ah',
       };
       moveCard(state, move);
@@ -981,10 +1119,38 @@ describe('moveCard', () => {
         type: 'tableau-to-foundation' as const,
         fromPile: 'tableau' as const,
         toPile: 'foundation' as const,
+        toIndex: 0,
         cardId: 'nonexistent',
       };
       const result = moveCard(state, move);
       expect(result).toBe(state);
+    });
+
+    it('auto-flips the exposed face-down card in the source tableau pile', () => {
+      const faceDown = makeCard({ id: 'fd', faceUp: false });
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [faceDown, ace] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-foundation' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'foundation' as const,
+        toIndex: 0,
+        cardId: 'ah',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(1);
+      expect(result.tableau[0].cards[0].faceUp).toBe(true);
+      expect(result.tableau[0].cards[0].id).toBe('fd');
     });
   });
 
@@ -1007,6 +1173,7 @@ describe('moveCard', () => {
       const move = {
         type: 'waste-to-tableau' as const,
         toPile: 'tableau' as const,
+        toIndex: 0,
         cardId: '7h',
       };
       const result = moveCard(state, move);
@@ -1033,6 +1200,7 @@ describe('moveCard', () => {
       const move = {
         type: 'waste-to-tableau' as const,
         toPile: 'tableau' as const,
+        toIndex: 0,
         cardId: '7h',
       };
       moveCard(state, move);
@@ -1045,6 +1213,7 @@ describe('moveCard', () => {
       const move = {
         type: 'waste-to-tableau' as const,
         toPile: 'tableau' as const,
+        toIndex: 0,
         cardId: 'nonexistent',
       };
       const result = moveCard(state, move);
@@ -1060,6 +1229,7 @@ describe('moveCard', () => {
       });
       const move = {
         type: 'waste-to-foundation' as const,
+        toIndex: 0,
         cardId: 'ah',
       };
       const result = moveCard(state, move);
@@ -1082,6 +1252,7 @@ describe('moveCard', () => {
       });
       const move = {
         type: 'waste-to-foundation' as const,
+        toIndex: 0,
         cardId: '2h',
       };
       const result = moveCard(state, move);
@@ -1096,6 +1267,7 @@ describe('moveCard', () => {
       });
       const move = {
         type: 'waste-to-foundation' as const,
+        toIndex: 0,
         cardId: 'ah',
       };
       moveCard(state, move);
@@ -1107,6 +1279,7 @@ describe('moveCard', () => {
       const state = makeGameState();
       const move = {
         type: 'waste-to-foundation' as const,
+        toIndex: 0,
         cardId: 'nonexistent',
       };
       const result = moveCard(state, move);
@@ -1174,6 +1347,30 @@ describe('moveCard', () => {
       }
     });
 
+    it('preserves card order when recycling waste back to stock with existing stock', () => {
+      const stockCard = makeCard({ id: 'stock-card', faceUp: false });
+      const wasteCard1 = makeCard({ id: 'waste-1', faceUp: true });
+      const wasteCard2 = makeCard({ id: 'waste-2', faceUp: true });
+      const wasteCard3 = makeCard({ id: 'waste-3', faceUp: true });
+      const state = makeGameState({
+        stock: [stockCard],
+        waste: [wasteCard1, wasteCard2, wasteCard3],
+      });
+      const move = { type: 'recycle-waste' as const };
+      const result = moveCard(state, move);
+      expect(result.waste).toHaveLength(0);
+      expect(result.stock).toHaveLength(4);
+      expect(result.stock.map((c) => c.id)).toEqual([
+        'stock-card',
+        'waste-1',
+        'waste-2',
+        'waste-3',
+      ]);
+      for (const card of result.stock) {
+        expect(card.faceUp).toBe(false);
+      }
+    });
+
     it('does not mutate the original state', () => {
       const card1 = makeCard({ id: '1', faceUp: true });
       const card2 = makeCard({ id: '2', faceUp: true });
@@ -1211,6 +1408,7 @@ describe('selectCard', () => {
     gameOver: false,
     drawMode: 3,
     selectedCardId: null,
+    undoHistory: [],
     ...overrides,
   });
 
@@ -1258,5 +1456,195 @@ describe('selectCard', () => {
     const state = makeGameState();
     const result = selectCard(state, 'card-1');
     expect(result).not.toBe(state);
+  });
+});
+
+describe('undo', () => {
+  const makeGameState = (overrides: Partial<import('../types').GameState> = {}) => ({
+    deck: [],
+    stock: [],
+    waste: [],
+    foundations: [
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+      { type: 'foundation' as const, cards: [] },
+    ],
+    tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
+    moves: [],
+    gameOver: false,
+    drawMode: 3,
+    selectedCardId: null,
+    undoHistory: [],
+    ...overrides,
+  });
+
+  const makeCard = (overrides: Partial<import('../types').Card>): import('../types').Card => ({
+    id: 'test-card',
+    suit: 'hearts',
+    rank: 'A',
+    color: 'red',
+    faceUp: true,
+    ...overrides,
+  });
+
+  it('returns the same state when undoHistory is empty', () => {
+    const state = makeGameState();
+    const result = undo(state);
+    expect(result).toBe(state);
+  });
+
+  it('restores the previous state when a move was made', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const blackTwo = makeCard({ id: '2s', suit: 'spades', rank: '2', color: 'black' });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [ace] },
+        { type: 'tableau', cards: [blackTwo] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+
+    const afterMove = moveCard(state, {
+      type: 'tableau-to-tableau',
+      fromPile: 'tableau',
+      toPile: 'tableau',
+      toIndex: 1,
+      cardId: 'ah',
+    });
+
+    expect(afterMove.tableau[0].cards).toHaveLength(0);
+    expect(afterMove.tableau[1].cards).toHaveLength(2);
+
+    const result = undo(afterMove);
+    expect(result.tableau[0].cards).toHaveLength(1);
+    expect(result.tableau[0].cards[0].id).toBe('ah');
+    expect(result.tableau[1].cards).toHaveLength(1);
+    expect(result.tableau[1].cards[0].id).toBe('2s');
+    expect(result.moves).toEqual([]);
+  });
+
+  it('restores the previous state after drawFromStock', () => {
+    const card1 = makeCard({ id: '1', faceUp: false });
+    const card2 = makeCard({ id: '2', faceUp: false });
+    const state = makeGameState({ stock: [card1, card2], drawMode: 1 });
+
+    const afterDraw = drawFromStock(state);
+    expect(afterDraw.waste).toHaveLength(1);
+    expect(afterDraw.stock).toHaveLength(1);
+
+    const result = undo(afterDraw);
+    expect(result.waste).toHaveLength(0);
+    expect(result.stock).toHaveLength(2);
+  });
+
+  it('restores the previous state after selectCard', () => {
+    const state = makeGameState();
+    const afterSelect = selectCard(state, 'card-1');
+    expect(afterSelect.selectedCardId).toBe('card-1');
+
+    const result = undo(afterSelect);
+    expect(result.selectedCardId).toBe(null);
+  });
+
+  it('restores the previous state after flipTableauCard', () => {
+    const faceDown = makeCard({ id: 'fd', faceUp: false });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [faceDown] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+
+    const afterFlip = flipTableauCard(state, 0);
+    expect(afterFlip.tableau[0].cards[0].faceUp).toBe(true);
+
+    const result = undo(afterFlip);
+    expect(result.tableau[0].cards[0].faceUp).toBe(false);
+  });
+
+  it('pops only the last history entry, keeping earlier entries', () => {
+    const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+    const blackTwo = makeCard({ id: '2s', suit: 'spades', rank: '2', color: 'black' });
+    const state = makeGameState({
+      tableau: [
+        { type: 'tableau', cards: [ace] },
+        { type: 'tableau', cards: [blackTwo] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+        { type: 'tableau', cards: [] },
+      ],
+    });
+
+    const afterFirst = moveCard(state, {
+      type: 'tableau-to-tableau',
+      fromPile: 'tableau',
+      toPile: 'tableau',
+      toIndex: 1,
+      cardId: 'ah',
+    });
+
+    const afterSecond = moveCard(afterFirst, {
+      type: 'tableau-to-tableau',
+      fromPile: 'tableau',
+      toPile: 'tableau',
+      toIndex: 0,
+      cardId: '2s',
+    });
+
+    const firstUndo = undo(afterSecond);
+    expect(firstUndo.tableau[0].cards).toHaveLength(0);
+    expect(firstUndo.tableau[1].cards).toHaveLength(2);
+    expect(firstUndo.undoHistory).toHaveLength(1);
+
+    const secondUndo = undo(firstUndo);
+    expect(secondUndo.tableau[0].cards).toHaveLength(1);
+    expect(secondUndo.tableau[0].cards[0].id).toBe('ah');
+    expect(secondUndo.undoHistory).toHaveLength(0);
+  });
+
+  it('does not push history when a move is invalid (no-op)', () => {
+    const state = makeGameState();
+    const result = moveCard(state, {
+      type: 'tableau-to-tableau',
+      fromPile: 'tableau',
+      toPile: 'tableau',
+      toIndex: 0,
+      cardId: 'nonexistent',
+    });
+    expect(result).toBe(state);
+    expect(result.undoHistory).toHaveLength(0);
+  });
+
+  it('caps the undo history at MAX_UNDO_HISTORY', () => {
+    let state = makeGameState();
+
+    for (let i = 0; i < MAX_UNDO_HISTORY + 10; i++) {
+      state = selectCard(state, `card-${i}`);
+    }
+
+    expect(state.undoHistory).toHaveLength(MAX_UNDO_HISTORY);
+  });
+
+  it('exports MAX_UNDO_HISTORY as 50', () => {
+    expect(MAX_UNDO_HISTORY).toBe(50);
+  });
+});
+
+describe('dealGame undo history', () => {
+  it('initializes undoHistory as an empty array', () => {
+    const state = dealGame();
+    expect(state.undoHistory).toEqual([]);
   });
 });

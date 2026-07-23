@@ -202,6 +202,7 @@ describe('useGameState', () => {
         type: 'tableau-to-foundation',
         fromPile: 'tableau',
         toPile: 'foundation',
+        toIndex: 0,
         cardId: topCard.id,
       };
 
@@ -221,6 +222,7 @@ describe('useGameState', () => {
         type: 'tableau-to-foundation',
         fromPile: 'tableau',
         toPile: 'foundation',
+        toIndex: 0,
         cardId: 'nonexistent-card',
       };
 
@@ -379,6 +381,141 @@ describe('useGameState', () => {
       const { result } = renderHook(() => useGameState());
       expect(result.current.dispatch).toBeDefined();
       expect(typeof result.current.dispatch).toBe('function');
+    });
+  });
+
+  describe('undo', () => {
+    it('exposes an undo action', () => {
+      const { result } = renderHook(() => useGameState());
+      expect(typeof result.current.actions.undo).toBe('function');
+    });
+
+    it('does nothing when undoHistory is empty', () => {
+      const { result } = renderHook(() => useGameState());
+      const stateBefore = result.current.state;
+
+      act(() => {
+        result.current.actions.undo();
+      });
+
+      expect(result.current.state).toBe(stateBefore);
+    });
+
+    it('restores the previous state after a move', () => {
+      const { result } = renderHook(() => useGameState());
+      const initialMoves = result.current.state.moves.length;
+
+      const topCard = result.current.state.tableau[0].cards[0];
+      const move: Move = {
+        type: 'tableau-to-foundation',
+        fromPile: 'tableau',
+        toPile: 'foundation',
+        toIndex: 0,
+        cardId: topCard.id,
+      };
+
+      act(() => {
+        result.current.actions.move(move);
+      });
+
+      expect(result.current.state.moves.length).toBe(initialMoves + 1);
+      expect(result.current.state.undoHistory).toHaveLength(1);
+
+      act(() => {
+        result.current.actions.undo();
+      });
+
+      expect(result.current.state.moves.length).toBe(initialMoves);
+      expect(result.current.state.undoHistory).toHaveLength(0);
+    });
+
+    it('restores the previous state after selectCard', () => {
+      const { result } = renderHook(() => useGameState());
+
+      act(() => {
+        result.current.actions.selectCard('card-1');
+      });
+
+      expect(result.current.state.selectedCardId).toBe('card-1');
+      expect(result.current.state.undoHistory).toHaveLength(1);
+
+      act(() => {
+        result.current.actions.undo();
+      });
+
+      expect(result.current.state.selectedCardId).toBe(null);
+      expect(result.current.state.undoHistory).toHaveLength(0);
+    });
+
+    it('supports multiple undo steps', () => {
+      const { result } = renderHook(() => useGameState());
+
+      act(() => {
+        result.current.actions.selectCard('card-1');
+      });
+      act(() => {
+        result.current.actions.selectCard('card-2');
+      });
+
+      expect(result.current.state.selectedCardId).toBe('card-2');
+      expect(result.current.state.undoHistory).toHaveLength(2);
+
+      act(() => {
+        result.current.actions.undo();
+      });
+
+      expect(result.current.state.selectedCardId).toBe('card-1');
+      expect(result.current.state.undoHistory).toHaveLength(1);
+
+      act(() => {
+        result.current.actions.undo();
+      });
+
+      expect(result.current.state.selectedCardId).toBe(null);
+      expect(result.current.state.undoHistory).toHaveLength(0);
+    });
+
+    it('restores the full previous state after an autoMove to foundation', () => {
+      const { result } = renderHook(() => useGameState());
+      const tableau = result.current.state.tableau;
+      let ace: Card | null = null;
+
+      for (let i = 0; i < tableau.length; i++) {
+        const pile = tableau[i];
+        if (pile.cards.length > 0) {
+          const topCard = pile.cards[pile.cards.length - 1];
+          if (topCard.faceUp && topCard.rank === 'A') {
+            ace = topCard;
+            break;
+          }
+        }
+      }
+
+      if (!ace) {
+        return;
+      }
+
+      const stateBefore = result.current.state;
+
+      act(() => {
+        result.current.actions.autoMove(ace!);
+      });
+
+      expect(result.current.state.moves.length).toBe(stateBefore.moves.length + 1);
+      expect(result.current.state.undoHistory).toHaveLength(1);
+
+      act(() => {
+        result.current.actions.undo();
+      });
+
+      const afterUndo = result.current.state;
+      expect(afterUndo.moves).toEqual(stateBefore.moves);
+      expect(afterUndo.tableau).toEqual(stateBefore.tableau);
+      expect(afterUndo.foundations).toEqual(stateBefore.foundations);
+      expect(afterUndo.stock).toEqual(stateBefore.stock);
+      expect(afterUndo.waste).toEqual(stateBefore.waste);
+      expect(afterUndo.selectedCardId).toBe(stateBefore.selectedCardId);
+      expect(afterUndo.undoHistory).toHaveLength(0);
     });
   });
 });

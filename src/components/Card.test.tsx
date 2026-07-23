@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Card } from './Card';
 import type { Card as CardData } from '../types';
 
@@ -53,6 +53,24 @@ describe('Card', () => {
       button.click();
       expect(onClick).toHaveBeenCalledOnce();
     });
+
+    it('calls onDoubleClick when double-clicked', () => {
+      const card = makeCard();
+      const onDoubleClick = vi.fn();
+      render(<Card card={card} onDoubleClick={onDoubleClick} />);
+      const button = screen.getByRole('button');
+      fireEvent.doubleClick(button);
+      expect(onDoubleClick).toHaveBeenCalledOnce();
+    });
+
+    it('does not call onDoubleClick when clicked once', () => {
+      const card = makeCard();
+      const onDoubleClick = vi.fn();
+      render(<Card card={card} onDoubleClick={onDoubleClick} />);
+      const button = screen.getByRole('button');
+      button.click();
+      expect(onDoubleClick).not.toHaveBeenCalled();
+    });
   });
 
   describe('isSelected visual state', () => {
@@ -82,6 +100,43 @@ describe('Card', () => {
       render(<Card card={card} isSelected />);
       const button = screen.getByRole('button');
       expect(button.className).toContain('card-selected');
+    });
+  });
+
+  describe('hover animation', () => {
+    it('includes the card-hover class for a face-up card with onClick', () => {
+      const card = makeCard({ faceUp: true });
+      render(<Card card={card} onClick={vi.fn()} />);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('card-hover');
+    });
+
+    it('does not include the card-hover class for a face-down card with onClick', () => {
+      const card = makeCard({ faceUp: false });
+      render(<Card card={card} onClick={vi.fn()} />);
+      const button = screen.getByRole('button');
+      expect(button.className).not.toContain('card-hover');
+    });
+
+    it('does not include the card-hover class for a face-up card without onClick', () => {
+      const card = makeCard({ faceUp: true });
+      render(<Card card={card} />);
+      const button = screen.getByRole('button');
+      expect(button.className).not.toContain('card-hover');
+    });
+
+    it('includes cursor-pointer for a face-up card with onClick', () => {
+      const card = makeCard({ faceUp: true });
+      render(<Card card={card} onClick={vi.fn()} />);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('cursor-pointer');
+    });
+
+    it('includes cursor-default for a face-up card without onClick', () => {
+      const card = makeCard({ faceUp: true });
+      render(<Card card={card} />);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('cursor-default');
     });
   });
 });
