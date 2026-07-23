@@ -41,7 +41,7 @@ export function TableauPile({
       data-tableau-index={index}
       aria-label={`Tableau pile ${index + 1}`}
       className={clsx(
-        'tableau-pile relative flex w-full flex-col-reverse items-center',
+        'tableau-pile relative flex w-full flex-col items-center overflow-visible',
         isHighlighted && 'ring-2 ring-blue-400 ring-offset-2',
         className
       )}
@@ -62,7 +62,7 @@ export function TableauPile({
       {cards.length === 0 && (
         <div
           aria-label={`Empty tableau pile ${index + 1}`}
-          className="flex aspect-[7/10] w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-100 cursor-pointer"
+          className="flex aspect-[7/10] w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-300 cursor-pointer"
           onClick={onPileClick}
         />
       )}

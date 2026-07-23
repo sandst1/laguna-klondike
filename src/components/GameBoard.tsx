@@ -150,18 +150,14 @@ function GameBoardInner({
     >
       <section
         aria-label="Klondike Solitaire board"
-        className={clsx(
-          'game-board flex w-full flex-col gap-2 p-2',
-          'sm:gap-3 sm:p-4',
-          className
-        )}
+        className={clsx('game-board flex w-full flex-col gap-2 p-2', 'sm:gap-3 sm:p-4', className)}
       >
         <div className="flex items-start justify-between gap-2 sm:gap-3">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div
               data-testid="stock-pile"
               aria-label={`Stock pile, ${stock.length} cards remaining`}
-              className="relative flex aspect-[7/10] w-full max-w-[180px] items-center justify-center rounded-xl border-2 border-green-950 bg-green-900 cursor-pointer transition-colors duration-150 hover:brightness-110 sm:max-w-[140px]"
+              className="relative flex aspect-[7/10] w-[240px] items-center justify-center rounded-xl border-2 border-green-950 bg-green-900 cursor-pointer transition-colors duration-150 hover:brightness-110 sm:w-[180px]"
               onClick={() => {
                 if (stock.length > 0 || waste.length > 0) {
                   draw();
@@ -174,8 +170,6 @@ function GameBoardInner({
                 </span>
               )}
             </div>
-          </div>
-          <div className="flex items-center justify-center">
             <WastePile
               pile={{ type: 'waste', cards: waste }}
               index={0}
@@ -186,30 +180,26 @@ function GameBoardInner({
               isValidDropTarget={isValidDropTarget}
             />
           </div>
-        </div>
-
-        <div className="grid grid-cols-4 grid-rows-1 gap-2 sm:gap-3">
-          {foundations.map((foundation, index) => (
-            <div key={`foundation-${index}`} className="flex w-full items-center justify-center">
-              <FoundationPile
-                pile={foundation}
-                index={index}
-                selectedCardId={selectedCardId}
-                onCardClick={handleCardClickCallback}
-                onCardDoubleClick={handleCardDoubleClickCallback}
-                onPileClick={() => handlePileClick({ pileType: 'foundation', index })}
-                isValidDropTarget={isValidDropTarget}
-              />
-            </div>
-          ))}
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            {foundations.map((foundation, index) => (
+              <div key={`foundation-${index}`} className="flex items-center justify-center">
+                <FoundationPile
+                  pile={foundation}
+                  index={index}
+                  selectedCardId={selectedCardId}
+                  onCardClick={handleCardClickCallback}
+                  onCardDoubleClick={handleCardDoubleClickCallback}
+                  onPileClick={() => handlePileClick({ pileType: 'foundation', index })}
+                  isValidDropTarget={isValidDropTarget}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="grid flex-1 grid-cols-7 grid-rows-1 gap-2 sm:gap-3">
           {tableau.map((pile, index) => (
-            <div
-              key={`tableau-${index}`}
-              className="flex w-full min-w-0 items-end justify-center"
-            >
+            <div key={`tableau-${index}`} className="flex w-full min-w-0 items-start justify-center">
               <TableauPile
                 pile={pile}
                 index={index}

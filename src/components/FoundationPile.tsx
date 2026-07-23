@@ -39,7 +39,7 @@ export function FoundationPile({
       data-foundation-index={index}
       aria-label={`Foundation pile ${index + 1}`}
       className={clsx(
-        'foundation-pile relative flex w-full max-w-[200px] items-center justify-center sm:max-w-[180px]',
+        'foundation-pile relative flex w-[240px] items-center justify-center sm:w-[180px]',
         isHighlighted && 'ring-2 ring-blue-400 ring-offset-2',
         className
       )}

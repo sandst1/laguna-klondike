@@ -47,9 +47,9 @@ export function Card({
   const faceDownClasses = 'bg-green-900 border-green-950';
 
   const faceUpSideClasses =
-    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-white';
+    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-white backface-visibility-hidden';
   const faceDownSideClasses =
-    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-green-900';
+    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-green-900 backface-visibility-hidden';
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: card.id,
