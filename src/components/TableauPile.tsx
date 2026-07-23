@@ -41,7 +41,7 @@ export function TableauPile({
       data-tableau-index={index}
       aria-label={`Tableau pile ${index + 1}`}
       className={clsx(
-        'tableau-pile relative flex w-full flex-col-reverse items-center gap-2',
+        'tableau-pile relative flex w-full flex-col-reverse items-center',
         isHighlighted && 'ring-2 ring-blue-400 ring-offset-2',
         className
       )}

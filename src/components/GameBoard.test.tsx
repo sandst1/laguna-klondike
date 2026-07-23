@@ -53,12 +53,12 @@ describe('GameBoard', () => {
     expect(screen.getByLabelText('Tableau pile 7')).toBeTruthy();
   });
 
-  it('uses a CSS grid layout with 7 columns and 2 rows', () => {
+  it('uses a flexbox column layout for the board', () => {
     const { container } = render(<GameBoard state={makeGameState({})} />);
     const board = container.querySelector('.game-board');
     expect(board).toBeTruthy();
-    expect(board?.className).toContain('grid-cols-7');
-    expect(board?.className).toContain('grid-rows-2');
+    expect(board?.className).toContain('flex-col');
+    expect(board?.className).toContain('w-full');
   });
 });
 

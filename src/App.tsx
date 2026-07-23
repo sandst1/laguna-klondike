@@ -40,13 +40,13 @@ function App() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center gap-4 bg-green-950 p-4 text-slate-100">
+    <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-green-950 p-4 text-slate-100">
       <header className="flex flex-col items-center gap-2">
         <h1 className="text-3xl font-bold">Klondike Solitaire</h1>
         <DrawModeToggle drawMode={settings.drawMode} onChange={handleDrawModeChange} />
       </header>
 
-      <main className="flex w-full max-w-4xl flex-col items-center gap-4">
+      <main className="flex w-full max-w-7xl flex-col items-center gap-4">
         <GameBoard
           state={state}
           move={actions.move}

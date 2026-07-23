@@ -151,30 +151,31 @@ function GameBoardInner({
       <section
         aria-label="Klondike Solitaire board"
         className={clsx(
-          'game-board grid grid-cols-7 grid-rows-2 gap-2',
-          'w-full max-w-4xl mx-auto p-2',
-          'sm:grid-cols-1 sm:grid-rows-[auto_auto_auto]',
+          'game-board flex w-full flex-col gap-2 p-2',
+          'sm:gap-3 sm:p-4',
           className
         )}
       >
-        <div className="col-span-1 row-span-1 flex items-center justify-center sm:col-span-1 sm:flex-row sm:gap-2">
-          <div
-            data-testid="stock-pile"
-            aria-label={`Stock pile, ${stock.length} cards remaining`}
-            className="relative flex aspect-[7/10] w-full max-w-[200px] items-center justify-center rounded-xl border-2 border-green-950 bg-green-900 cursor-pointer transition-colors duration-150 hover:brightness-110 sm:max-w-[150px]"
-            onClick={() => {
-              if (stock.length > 0 || waste.length > 0) {
-                draw();
-              }
-            }}
-          >
-            {stock.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white sm:h-4 sm:w-4">
-                {stock.length}
-              </span>
-            )}
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
+          <div className="flex items-center justify-center">
+            <div
+              data-testid="stock-pile"
+              aria-label={`Stock pile, ${stock.length} cards remaining`}
+              className="relative flex aspect-[7/10] w-full max-w-[180px] items-center justify-center rounded-xl border-2 border-green-950 bg-green-900 cursor-pointer transition-colors duration-150 hover:brightness-110 sm:max-w-[140px]"
+              onClick={() => {
+                if (stock.length > 0 || waste.length > 0) {
+                  draw();
+                }
+              }}
+            >
+              {stock.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white sm:h-4 sm:w-4">
+                  {stock.length}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex w-full max-w-[200px] items-center justify-center sm:max-w-[150px] sm:ml-2">
+          <div className="flex items-center justify-center">
             <WastePile
               pile={{ type: 'waste', cards: waste }}
               index={0}
@@ -187,7 +188,7 @@ function GameBoardInner({
           </div>
         </div>
 
-        <div className="col-span-5 row-span-1 grid grid-cols-4 grid-rows-1 gap-2 sm:col-span-1">
+        <div className="grid grid-cols-4 grid-rows-1 gap-2 sm:gap-3">
           {foundations.map((foundation, index) => (
             <div key={`foundation-${index}`} className="flex w-full items-center justify-center">
               <FoundationPile
@@ -203,11 +204,11 @@ function GameBoardInner({
           ))}
         </div>
 
-        <div className="col-span-7 row-span-1 grid grid-cols-7 grid-rows-1 gap-2 sm:col-span-1 sm:overflow-x-auto">
+        <div className="grid flex-1 grid-cols-7 grid-rows-1 gap-2 sm:gap-3">
           {tableau.map((pile, index) => (
             <div
               key={`tableau-${index}`}
-              className="flex w-full min-w-0 items-center justify-center"
+              className="flex w-full min-w-0 items-end justify-center"
             >
               <TableauPile
                 pile={pile}
