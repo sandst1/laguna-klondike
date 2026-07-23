@@ -12,6 +12,12 @@ import {
 } from '../game/game';
 import { useSound } from './useSound';
 
+declare global {
+  interface Window {
+    __klondikeDispatch?: (action: GameStateAction) => void;
+  }
+}
+
 export type GameStateAction =
   | { type: 'deal'; drawMode?: DrawMode }
   | { type: 'draw' }
@@ -19,7 +25,8 @@ export type GameStateAction =
   | { type: 'flipTableau'; index: number }
   | { type: 'selectCard'; cardId: string | null }
   | { type: 'autoMove'; card: Card }
-  | { type: 'undo' };
+  | { type: 'undo' }
+  | { type: 'setState'; state: GameState };
 
 function gameStateReducer(state: GameState, action: GameStateAction): GameState {
   switch (action.type) {
@@ -37,6 +44,8 @@ function gameStateReducer(state: GameState, action: GameStateAction): GameState 
       return autoMoveToFoundation(state, action.card);
     case 'undo':
       return undo(state);
+    case 'setState':
+      return action.state;
     default:
       return state;
   }
@@ -107,6 +116,13 @@ export function useGameState(initialDrawMode: DrawMode = 3, soundEnabled: boolea
       playSound('win');
     }
   }, [gameOver, playSound]);
+
+  useEffect(() => {
+    window.__klondikeDispatch = dispatch;
+    return () => {
+      window.__klondikeDispatch = undefined;
+    };
+  }, []);
 
   return {
     state,

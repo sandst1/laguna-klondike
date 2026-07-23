@@ -26,8 +26,8 @@ export function TableauPile({
   className,
 }: TableauPileProps) {
   const cards = pile.cards;
+  const faceDownCards = cards.filter((c) => !c.faceUp);
   const visibleCards = cards.filter((c) => c.faceUp);
-  const faceDownCount = cards.length - visibleCards.length;
 
   const dropTarget: DropTarget = { pileType: 'tableau', index };
   const isHighlighted = isValidDropTarget(dropTarget);
@@ -41,23 +41,14 @@ export function TableauPile({
       data-tableau-index={index}
       aria-label={`Tableau pile ${index + 1}`}
       className={clsx(
-        'tableau-pile relative flex flex-col-reverse items-center gap-1',
+        'tableau-pile relative flex w-full flex-col-reverse items-center gap-2',
         isHighlighted && 'ring-2 ring-blue-400 ring-offset-2',
         className
       )}
     >
-      {faceDownCount > 0 && (
-        <div
-          aria-label={`${faceDownCount} face-down card${faceDownCount > 1 ? 's' : ''}`}
-          className="relative flex h-10 w-7 items-center justify-center rounded-lg border-2 border-green-950 bg-green-900 sm:h-8 sm:w-6"
-        >
-          {faceDownCount > 1 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
-              {faceDownCount}
-            </span>
-          )}
-        </div>
-      )}
+      {faceDownCards.map((card) => (
+        <Card key={card.id} card={card} draggable={false} />
+      ))}
       {visibleCards.map((card) => (
         <Card
           key={card.id}
@@ -71,7 +62,7 @@ export function TableauPile({
       {cards.length === 0 && (
         <div
           aria-label={`Empty tableau pile ${index + 1}`}
-          className="flex h-10 w-7 items-center justify-center rounded-lg border-2 border-dashed border-slate-400 bg-slate-100 cursor-pointer sm:h-8 sm:w-6"
+          className="flex aspect-[7/10] w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-100 cursor-pointer"
           onClick={onPileClick}
         />
       )}

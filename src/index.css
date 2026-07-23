@@ -162,9 +162,13 @@
     transform-style: preserve-3d;
   }
 
-  .card-flip-inner[data-face-up='true'] {
-    transform: rotateY(-180deg);
-  }
+   .card-flip-inner[data-face-up='true'] {
+     transform: rotateY(-180deg);
+   }
+
+   .card-face-up-content {
+     transform: rotateY(180deg);
+   }
 
   .card-flip-front,
   .card-flip-back {

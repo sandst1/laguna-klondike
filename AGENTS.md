@@ -139,3 +139,9 @@ npx tsc --noEmit  # typecheck
 - The win sound plays automatically via a `useEffect` when `gameOver` becomes `true`.
 - When sound is disabled or `AudioContext` is unavailable, all sound calls are silent no-ops.
 - Tests in `src/hooks/useSound.test.ts` verify sound generation, lazy AudioContext creation, context reuse, disabled state, and fallback to `webkitAudioContext`.
+
+## Test Hooks (E2E)
+
+- `useGameState` exposes a `window.__klondikeDispatch` function in development mode that allows Playwright tests to dispatch game state actions (e.g., `deal`, `move`, `setState`) directly from `page.evaluate()`.
+- The `setState` action type allows replacing the entire `GameState` — useful for setting up specific scenarios like a winning game (all foundations filled) without playing through the full game.
+- Win detection tests use this hook to set up a winning state and verify the win overlay appears/disappears correctly.

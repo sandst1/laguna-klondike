@@ -39,7 +39,7 @@ export function WastePile({
       data-waste-index={index}
       aria-label="Waste pile"
       className={clsx(
-        'waste-pile relative flex items-center justify-center',
+        'waste-pile relative flex w-full max-w-[200px] items-center justify-center sm:max-w-[180px]',
         isHighlighted && 'ring-2 ring-blue-400 ring-offset-2',
         className
       )}
@@ -55,7 +55,7 @@ export function WastePile({
       ) : (
         <div
           aria-label="Empty waste pile"
-          className="flex h-10 w-7 items-center justify-center rounded-lg border-2 border-dashed border-slate-400 bg-slate-100 cursor-pointer sm:h-8 sm:w-6"
+          className="flex aspect-[7/10] w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-100 cursor-pointer"
           onClick={onPileClick}
         />
       )}

@@ -55,12 +55,13 @@ describe('TableauPile', () => {
       expect(screen.getByLabelText('2 of hearts (red) card')).toBeTruthy();
     });
 
-    it('renders face-down cards as a stack with a count badge', () => {
-      const faceDown = makeCard({ id: 'fd', faceUp: false });
+    it('renders face-down cards as individual card buttons', () => {
+      const faceDown1 = makeCard({ id: 'fd1', faceUp: false });
+      const faceDown2 = makeCard({ id: 'fd2', faceUp: false });
       const ace = makeCard({ id: 'ah', rank: 'A', faceUp: true });
       render(
         <TableauPile
-          pile={makePile([faceDown, faceDown, ace])}
+          pile={makePile([faceDown1, faceDown2, ace])}
           index={0}
           selectedCardId={null}
           onCardClick={() => {}}
@@ -69,10 +70,11 @@ describe('TableauPile', () => {
           isValidDropTarget={() => false}
         />
       );
-      expect(screen.getByLabelText('2 face-down cards')).toBeTruthy();
+      const faceDownCards = screen.getAllByLabelText('face-down card');
+      expect(faceDownCards).toHaveLength(2);
     });
 
-    it('renders a single face-down card without a count badge', () => {
+    it('renders a single face-down card as a button', () => {
       const faceDown = makeCard({ id: 'fd', faceUp: false });
       render(
         <TableauPile
@@ -85,7 +87,7 @@ describe('TableauPile', () => {
           isValidDropTarget={() => false}
         />
       );
-      expect(screen.getByLabelText('1 face-down card')).toBeTruthy();
+      expect(screen.getByLabelText('face-down card')).toBeTruthy();
     });
   });
 

@@ -120,16 +120,16 @@
 
 ## Phase 13: End-to-End Testing
 
-- [ ] 13.1 Write Playwright test: new game deals correctly
-- [ ] 13.2 Write Playwright test: drag card from tableau to foundation
-- [ ] 13.3 Write Playwright test: click stock to draw
-- [ ] 13.4 Write Playwright test: undo restores state
-- [ ] 13.5 Write Playwright test: win detection
-- [ ] 13.6 Run all E2E tests
+- [x] 13.1 Write Playwright test: new game deals correctly
+- [x] 13.2 Write Playwright test: drag card from tableau to foundation
+- [x] 13.3 Write Playwright test: click stock to draw
+- [x] 13.4 Write Playwright test: undo restores state
+- [x] 13.5 Write Playwright test: win detection
+- [x] 13.6 Run all E2E tests
 
 ## Phase 14: Usability Testing with agent-browser
 
-- [ ] 14.1 Use agent-browser to play through several full games and identify usability friction points
+- [ ] 14.1 Use agent-browser to play some games and identify usability friction points
 - [ ] 14.2 Test drag-and-drop precision on mobile and desktop viewports; tweak drop zone sensitivity and hover feedback
 - [ ] 14.3 Verify double-click auto-move and click-to-move paths are intuitive; adjust selection highlighting if needed
 - [ ] 14.4 Evaluate card flip and move animations for perceived lag; tune duration/easing if janky

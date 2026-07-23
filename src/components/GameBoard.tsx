@@ -157,11 +157,11 @@ function GameBoardInner({
           className
         )}
       >
-        <div className="col-span-1 row-span-1 flex items-center justify-center sm:grid sm:grid-cols-2 sm:gap-2">
+        <div className="col-span-1 row-span-1 flex items-center justify-center sm:col-span-1 sm:flex-row sm:gap-2">
           <div
             data-testid="stock-pile"
             aria-label={`Stock pile, ${stock.length} cards remaining`}
-            className="relative flex h-10 w-7 items-center justify-center rounded-lg border-2 border-green-950 bg-green-900 cursor-pointer transition-colors duration-150 hover:brightness-110 sm:h-8 sm:w-6"
+            className="relative flex aspect-[7/10] w-full max-w-[200px] items-center justify-center rounded-xl border-2 border-green-950 bg-green-900 cursor-pointer transition-colors duration-150 hover:brightness-110 sm:max-w-[150px]"
             onClick={() => {
               if (stock.length > 0 || waste.length > 0) {
                 draw();
@@ -169,28 +169,27 @@ function GameBoardInner({
             }}
           >
             {stock.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[8px] font-bold text-white sm:h-3 sm:w-3">
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white sm:h-4 sm:w-4">
                 {stock.length}
               </span>
             )}
           </div>
-        </div>
-
-        <div className="col-span-1 row-span-1 flex items-center justify-center">
-          <WastePile
-            pile={{ type: 'waste', cards: waste }}
-            index={0}
-            selectedCardId={selectedCardId}
-            onCardClick={handleCardClickCallback}
-            onCardDoubleClick={handleCardDoubleClickCallback}
-            onPileClick={() => handlePileClick({ pileType: 'waste', index: 0 })}
-            isValidDropTarget={isValidDropTarget}
-          />
+          <div className="flex w-full max-w-[200px] items-center justify-center sm:max-w-[150px] sm:ml-2">
+            <WastePile
+              pile={{ type: 'waste', cards: waste }}
+              index={0}
+              selectedCardId={selectedCardId}
+              onCardClick={handleCardClickCallback}
+              onCardDoubleClick={handleCardDoubleClickCallback}
+              onPileClick={() => handlePileClick({ pileType: 'waste', index: 0 })}
+              isValidDropTarget={isValidDropTarget}
+            />
+          </div>
         </div>
 
         <div className="col-span-5 row-span-1 grid grid-cols-4 grid-rows-1 gap-2 sm:col-span-1">
           {foundations.map((foundation, index) => (
-            <div key={`foundation-${index}`} className="flex items-center justify-center">
+            <div key={`foundation-${index}`} className="flex w-full items-center justify-center">
               <FoundationPile
                 pile={foundation}
                 index={index}
@@ -206,7 +205,10 @@ function GameBoardInner({
 
         <div className="col-span-7 row-span-1 grid grid-cols-7 grid-rows-1 gap-2 sm:col-span-1 sm:overflow-x-auto">
           {tableau.map((pile, index) => (
-            <div key={`tableau-${index}`} className="flex min-w-0 items-center justify-center">
+            <div
+              key={`tableau-${index}`}
+              className="flex w-full min-w-0 items-center justify-center"
+            >
               <TableauPile
                 pile={pile}
                 index={index}

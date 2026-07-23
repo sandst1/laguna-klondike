@@ -40,16 +40,16 @@ export function Card({
   const isRed = card.color === 'red';
 
   const baseClasses =
-    'relative aspect-[7/10] w-full max-w-[80px] rounded-lg border-2 border-white shadow-md select-none transition-all duration-200 ease-out sm:max-w-[60px]';
+    'relative aspect-[7/10] w-full max-w-[240px] rounded-xl border-2 border-white shadow-xl select-none transition-all duration-200 ease-out sm:max-w-[180px]';
 
   const faceUpClasses = isRed ? 'bg-white text-red-600' : 'bg-white text-slate-900';
 
   const faceDownClasses = 'bg-green-900 border-green-950';
 
   const faceUpSideClasses =
-    'absolute inset-0 flex items-center justify-center rounded-lg border-2 border-white';
+    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-white';
   const faceDownSideClasses =
-    'absolute inset-0 flex items-center justify-center rounded-lg border-2 border-white';
+    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-green-900';
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: card.id,
@@ -95,7 +95,7 @@ export function Card({
                 <svg
                   className="h-full w-full"
                   viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
+                  preserveAspectRatio="xMidYMid slice"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   aria-hidden="true"
@@ -136,9 +136,9 @@ export function Card({
           </div>
         </div>
         <div className={clsx(faceUpSideClasses, faceUpClasses)} aria-hidden="true">
-          <div className="relative flex h-full w-full flex-col items-center justify-between p-1 text-sm font-bold leading-tight sm:text-xs">
+          <div className="card-face-up-content absolute inset-0 flex h-full w-full flex-col items-center justify-between p-2.5 text-xl font-bold leading-tight sm:text-lg">
             <span className="self-start">{label}</span>
-            <span className="text-3xl sm:text-xl" aria-hidden="true">
+            <span className="text-5xl sm:text-3xl" aria-hidden="true">
               {symbol}
             </span>
             <span className="self-end rotate-180">{label}</span>

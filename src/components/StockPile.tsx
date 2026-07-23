@@ -34,7 +34,7 @@ export function StockPile({
       data-stock-index={index}
       aria-label={`Stock pile, ${count} cards remaining`}
       className={clsx(
-        'stock-pile relative flex h-10 w-7 items-center justify-center rounded-lg border-2 border-green-950 bg-green-900 cursor-pointer sm:h-8 sm:w-6',
+        'stock-pile relative flex h-20 w-14 items-center justify-center rounded-xl border-2 border-green-950 bg-green-900 cursor-pointer sm:h-16 sm:w-11',
         isHighlighted && 'ring-2 ring-blue-400 ring-offset-2',
         className
       )}
@@ -42,7 +42,7 @@ export function StockPile({
       draggable={count > 0}
     >
       {count > 0 && (
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[8px] font-bold text-white sm:h-3 sm:w-3">
+        <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white sm:h-5 sm:w-5">
           {count}
         </span>
       )}
