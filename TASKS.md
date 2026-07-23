@@ -126,3 +126,13 @@
 - [ ] 13.4 Write Playwright test: undo restores state
 - [ ] 13.5 Write Playwright test: win detection
 - [ ] 13.6 Run all E2E tests
+
+## Phase 14: Usability Testing with agent-browser
+
+- [ ] 14.1 Use agent-browser to play through several full games and identify usability friction points
+- [ ] 14.2 Test drag-and-drop precision on mobile and desktop viewports; tweak drop zone sensitivity and hover feedback
+- [ ] 14.3 Verify double-click auto-move and click-to-move paths are intuitive; adjust selection highlighting if needed
+- [ ] 14.4 Evaluate card flip and move animations for perceived lag; tune duration/easing if janky
+- [ ] 14.5 Test high-contrast mode and sound toggle accessibility; ensure toggles are discoverable
+- [ ] 14.6 Assess stock recycling, undo, and new-game flows for clarity; add tooltips or visual cues where confusing
+- [ ] 14.7 Iterate on any usability issues found until core interactions feel smooth and responsive
