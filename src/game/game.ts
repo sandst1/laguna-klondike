@@ -93,11 +93,11 @@ function flipExposedTableauCard(tableau: Pile[], index: number): Pile[] {
 }
 
 export function moveCard(state: GameState, move: Move): GameState {
-  const { type, cardId } = move;
+  const { type } = move;
 
   switch (type) {
     case 'tableau-to-tableau': {
-      const { toIndex } = move;
+      const { toIndex, cardId } = move;
       const sourceIndex = state.tableau.findIndex((p) => p.cards.some((c) => c.id === cardId));
       if (sourceIndex === -1) {
         return state;
@@ -127,6 +127,7 @@ export function moveCard(state: GameState, move: Move): GameState {
     }
 
     case 'tableau-to-foundation': {
+      const { cardId } = move;
       const sourceIndex = state.tableau.findIndex((p) => p.cards.some((c) => c.id === cardId));
       if (sourceIndex === -1) {
         return state;
@@ -161,6 +162,7 @@ export function moveCard(state: GameState, move: Move): GameState {
     }
 
     case 'waste-to-tableau': {
+      const { cardId } = move;
       const sourceIndex = state.waste.findIndex((c) => c.id === cardId);
       if (sourceIndex === -1) {
         return state;
@@ -189,6 +191,7 @@ export function moveCard(state: GameState, move: Move): GameState {
     }
 
     case 'waste-to-foundation': {
+      const { cardId } = move;
       const sourceIndex = state.waste.findIndex((c) => c.id === cardId);
       if (sourceIndex === -1) {
         return state;
@@ -217,6 +220,7 @@ export function moveCard(state: GameState, move: Move): GameState {
     }
 
     case 'stock-to-waste': {
+      const { cardId } = move;
       const sourceIndex = state.stock.findIndex((c) => c.id === cardId);
       if (sourceIndex === -1) {
         return state;

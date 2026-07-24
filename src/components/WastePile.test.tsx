@@ -119,6 +119,7 @@ describe('WastePile', () => {
           selectedCardId={null}
           onCardClick={onCardClick}
           onCardDoubleClick={() => {}}
+          onPileClick={() => {}}
           isValidDropTarget={() => false}
         />
       );
@@ -155,6 +156,7 @@ describe('WastePile', () => {
           selectedCardId={null}
           onCardClick={() => {}}
           onCardDoubleClick={() => {}}
+          onPileClick={() => {}}
           isValidDropTarget={() => true}
         />
       );
@@ -189,6 +191,7 @@ describe('WastePile', () => {
           selectedCardId={null}
           onCardClick={() => {}}
           onCardDoubleClick={() => {}}
+          onPileClick={() => {}}
           isValidDropTarget={isValidDropTarget}
         />
       );

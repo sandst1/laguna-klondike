@@ -5,9 +5,9 @@ type MyFixtures = {
 };
 
 export const test = base.extend<MyFixtures>({
-  page: async ({ browser }, use) => {
+  page: async ({ browser }, provide) => {
     const page = await browser.newPage();
-    await use(page);
+    await provide(page);
     await page.close();
   },
 });

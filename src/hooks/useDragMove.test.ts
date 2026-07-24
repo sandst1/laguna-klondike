@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import type { Card, GameState, Move } from '../types';
+import type { Card, GameState, Move, TableauToFoundationMove, WasteToFoundationMove, WasteToTableauMove } from '../types';
 import { useDragMove } from './useDragMove';
 import type { DropTarget } from '../game/rules';
 
@@ -194,7 +194,7 @@ describe('useDragMove', () => {
       expect(success!).toBe(true);
       expect(move).toHaveBeenCalledTimes(1);
       const dispatchedMove = move.mock.calls[0][0] as Move;
-      expect(dispatchedMove.cardId).toBe('ah');
+      expect((dispatchedMove as TableauToFoundationMove).cardId).toBe('ah');
       expect(dispatchedMove.type).toBe('tableau-to-foundation');
     });
 
@@ -476,9 +476,9 @@ describe('useDragMove', () => {
       expect(success!).toBe(true);
       expect(move).toHaveBeenCalledTimes(1);
       const dispatchedMove = move.mock.calls[0][0] as Move;
-      expect(dispatchedMove.cardId).toBe('wh');
+      expect((dispatchedMove as WasteToFoundationMove).cardId).toBe('wh');
       expect(dispatchedMove.type).toBe('waste-to-foundation');
-      expect(dispatchedMove.toIndex).toBe(0);
+      expect((dispatchedMove as WasteToFoundationMove).toIndex).toBe(0);
     });
 
     it('dispatches a waste-to-tableau move when dropping on a valid tableau target', () => {
@@ -500,9 +500,9 @@ describe('useDragMove', () => {
       expect(success!).toBe(true);
       expect(move).toHaveBeenCalledTimes(1);
       const dispatchedMove = move.mock.calls[0][0] as Move;
-      expect(dispatchedMove.cardId).toBe('wk');
+      expect((dispatchedMove as WasteToTableauMove).cardId).toBe('wk');
       expect(dispatchedMove.type).toBe('waste-to-tableau');
-      expect(dispatchedMove.toIndex).toBe(0);
+      expect((dispatchedMove as WasteToTableauMove).toIndex).toBe(0);
     });
 
     it('returns false when dropping a waste card on an invalid target', () => {

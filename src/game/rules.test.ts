@@ -8,7 +8,7 @@ import {
   getValidMoves,
   getValidMovesForCard,
 } from './rules';
-import type { Card, GameState, Pile } from '../types';
+import type { Card, GameState, Pile, TableauToTableauMove } from '../types';
 
 const makeCard = (overrides: Partial<Card>): Card => ({
   id: 'test-card',
@@ -351,7 +351,7 @@ describe('getValidMoves', () => {
     expect(tableauMoves).toHaveLength(1);
     expect(tableauMoves[0].to.index).toBe(1);
     expect(tableauMoves[0].move.type).toBe('tableau-to-tableau');
-    expect(tableauMoves[0].move.toIndex).toBe(1);
+    expect((tableauMoves[0].move as TableauToTableauMove).toIndex).toBe(1);
   });
 
   it('does not generate tableau-to-tableau moves when colors match (same color)', () => {

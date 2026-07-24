@@ -138,6 +138,7 @@ describe('TableauPile', () => {
           selectedCardId={null}
           onCardClick={onCardClick}
           onCardDoubleClick={() => {}}
+          onPileClick={() => {}}
           isValidDropTarget={() => false}
         />
       );
@@ -174,6 +175,7 @@ describe('TableauPile', () => {
           selectedCardId={null}
           onCardClick={() => {}}
           onCardDoubleClick={() => {}}
+          onPileClick={() => {}}
           isValidDropTarget={() => true}
         />
       );
@@ -208,6 +210,7 @@ describe('TableauPile', () => {
           selectedCardId={null}
           onCardClick={() => {}}
           onCardDoubleClick={() => {}}
+          onPileClick={() => {}}
           isValidDropTarget={isValidDropTarget}
         />
       );

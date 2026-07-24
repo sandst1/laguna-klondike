@@ -72,9 +72,9 @@ function GameBoardInner({
       const sourceEl = findCardElement(moveObj.cardId);
       let targetEl: Element | null = null;
 
-      if ('toIndex' in moveObj) {
+      if ('toPile' in moveObj) {
         const target: DropTarget = {
-          pileType: moveObj.toPile as DropTarget['pileType'],
+          pileType: moveObj.toPile,
           index: moveObj.toIndex,
         };
         targetEl = findTargetElement(target);
@@ -118,7 +118,7 @@ function GameBoardInner({
   const handleDragEndEvent = (event: DragEndEvent) => {
     const overId = event.over?.id;
     if (overId) {
-      const target = parseDroppableId(overId);
+      const target = parseDroppableId(overId as string);
       if (target) {
         handleDrop(target);
       }

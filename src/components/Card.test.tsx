@@ -6,7 +6,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Card } from './Card';
 import type { Card as CardData } from '../types';
 
-const makeCard = (overrides: Partial<CardData>): CardData => ({
+const makeCard = (overrides: Partial<CardData> = {}): CardData => ({
   id: 'test-card',
   suit: 'hearts',
   rank: 'A',

@@ -8,7 +8,7 @@ import type { Move } from '../types';
 
 const makeMove = (type: Move['type'], overrides: Partial<Move> = {}): Move => {
   if (type === 'recycle-waste') {
-    return { type: 'recycle-waste', ...overrides };
+    return { type: 'recycle-waste', ...overrides } as Move;
   }
   return {
     type,
@@ -68,7 +68,7 @@ describe('useSound', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    delete window.AudioContext;
+    delete (window as unknown as { AudioContext?: unknown }).AudioContext;
   });
 
   describe('when sound is enabled', () => {
@@ -206,7 +206,7 @@ describe('useSound', () => {
 
   describe('when AudioContext is not available', () => {
     it('does not throw when playSound is called', () => {
-      delete window.AudioContext;
+      delete (window as unknown as { AudioContext?: unknown }).AudioContext;
 
       const { result } = renderHook(() => useSound(true));
 
@@ -218,7 +218,7 @@ describe('useSound', () => {
     });
 
     it('falls back to webkitAudioContext when AudioContext is not available', () => {
-      delete window.AudioContext;
+      delete (window as unknown as { AudioContext?: unknown }).AudioContext;
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext =
         MockAudioContext;
 

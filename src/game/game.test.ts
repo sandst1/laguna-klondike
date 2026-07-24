@@ -11,6 +11,7 @@ import {
   MAX_UNDO_HISTORY,
 } from './game';
 import { createDeck } from './deck';
+import type { DrawMode, StockToWasteMove, TableauToFoundationMove } from '../types';
 
 describe('dealGame', () => {
   it('returns a GameState with the correct structure', () => {
@@ -164,7 +165,7 @@ describe('drawFromStock', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 1,
+    drawMode: 1 as DrawMode,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -275,7 +276,7 @@ describe('drawFromStock', () => {
     for (const move of result.moves) {
       expect(move.type).toBe('stock-to-waste');
     }
-    expect(result.moves.map((m) => m.cardId)).toEqual(['1', '2', '3']);
+    expect(result.moves.map((m) => (m as StockToWasteMove).cardId)).toEqual(['1', '2', '3']);
   });
 
   it('recycles waste back to stock when stock is empty', () => {
@@ -401,7 +402,7 @@ describe('drawFromStock', () => {
     const stock = [makeCard({ id: '1', faceUp: false })];
     const state = makeGameState({
       stock,
-      drawMode: 1,
+      drawMode: 1 as DrawMode,
       gameOver: false,
       selectedCardId: 'some-card',
     });
@@ -426,7 +427,7 @@ describe('flipTableauCard', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 1,
+    drawMode: 1 as DrawMode,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -579,7 +580,7 @@ describe('autoMoveToFoundation', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 1,
+    drawMode: 1 as DrawMode,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -712,7 +713,7 @@ describe('autoMoveToFoundation', () => {
     const result = autoMoveToFoundation(state, ace);
     expect(result.moves).toHaveLength(1);
     expect(result.moves[0].type).toBe('tableau-to-foundation');
-    expect(result.moves[0].cardId).toBe('ah');
+    expect((result.moves[0] as TableauToFoundationMove).cardId).toBe('ah');
   });
 });
 
@@ -730,7 +731,7 @@ describe('checkWin', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 1,
+    drawMode: 1 as DrawMode,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -814,7 +815,7 @@ describe('moveCard', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 1,
+    drawMode: 1 as DrawMode,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -1406,7 +1407,7 @@ describe('selectCard', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 1,
+    drawMode: 1 as DrawMode,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -1438,7 +1439,7 @@ describe('selectCard', () => {
 
   it('preserves all other state properties', () => {
     const state = makeGameState({
-      drawMode: 1,
+      drawMode: 1 as DrawMode,
       gameOver: false,
       moves: [{ type: 'recycle-waste' as const }],
     });
@@ -1473,7 +1474,7 @@ describe('undo', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 1,
+    drawMode: 1 as DrawMode,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,

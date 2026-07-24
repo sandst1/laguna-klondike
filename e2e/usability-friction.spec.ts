@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
  * Usability friction test — plays through games using real interactions
@@ -620,10 +620,6 @@ test.describe('Usability friction — play-through', () => {
 
     await page.mouse.up();
 
-    // Card should not have moved
-    const foundationCard = page
-      .getByLabel('Foundation pile 1')
-      .locator('button[aria-label$="card"]');
     // King should still be in tableau 1
     const tableau1Card = page.getByLabel('Tableau pile 1').locator('button[aria-label$="card"]');
     const count = await tableau1Card.count();

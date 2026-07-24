@@ -35,12 +35,10 @@ vi.stubGlobal('window', {});
 describe('loadSettings', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.getItem.mockRestore();
   });
 
   afterEach(() => {
     localStorage.clear();
-    localStorage.getItem.mockRestore();
   });
 
   it('returns default settings when nothing is stored', () => {
@@ -98,12 +96,10 @@ describe('loadSettings', () => {
 describe('saveSettings', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem.mockRestore();
   });
 
   afterEach(() => {
     localStorage.clear();
-    localStorage.setItem.mockRestore();
   });
 
   it('persists settings to localStorage', () => {
