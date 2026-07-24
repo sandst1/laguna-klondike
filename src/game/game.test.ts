@@ -1028,6 +1028,66 @@ describe('moveCard', () => {
       expect(result.tableau[0].cards).toHaveLength(1);
       expect(result.tableau[0].cards[0].faceUp).toBe(true);
     });
+
+    it('moves a card and all cards above it from the middle of a tableau pile', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const redSix = makeCard({ id: '6d', suit: 'diamonds', rank: '6', color: 'red' });
+      const blackFive = makeCard({ id: '5c', suit: 'clubs', rank: '5', color: 'black' });
+      const blackTen = makeCard({ id: '0s', suit: 'spades', rank: '10', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [redSeven, blackEight, redSix, blackFive] },
+          { type: 'tableau', cards: [blackTen] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        toIndex: 1,
+        cardId: '8s',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(1);
+      expect(result.tableau[0].cards[0].id).toBe('7h');
+      expect(result.tableau[1].cards).toHaveLength(4);
+      expect(result.tableau[1].cards.map((c) => c.id)).toEqual(['0s', '8s', '6d', '5c']);
+    });
+
+    it('moves all cards when dragging the bottom card of a tableau pile', () => {
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const redSix = makeCard({ id: '6d', suit: 'diamonds', rank: '6', color: 'red' });
+      const blackTen = makeCard({ id: '0s', suit: 'spades', rank: '10', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [redSeven, blackEight, redSix] },
+          { type: 'tableau', cards: [blackTen] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-tableau' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'tableau' as const,
+        toIndex: 1,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(0);
+      expect(result.tableau[1].cards).toHaveLength(4);
+      expect(result.tableau[1].cards.map((c) => c.id)).toEqual(['0s', '7h', '8s', '6d']);
+    });
   });
 
   describe('tableau-to-foundation', () => {
@@ -1152,6 +1212,35 @@ describe('moveCard', () => {
       expect(result.tableau[0].cards).toHaveLength(1);
       expect(result.tableau[0].cards[0].faceUp).toBe(true);
       expect(result.tableau[0].cards[0].id).toBe('fd');
+    });
+
+    it('removes the card and all cards above it from the source tableau when moving to foundation', () => {
+      const ace = makeCard({ id: 'ah', suit: 'hearts', rank: 'A', color: 'red' });
+      const redSeven = makeCard({ id: '7h', suit: 'hearts', rank: '7', color: 'red' });
+      const blackEight = makeCard({ id: '8s', suit: 'spades', rank: '8', color: 'black' });
+      const state = makeGameState({
+        tableau: [
+          { type: 'tableau', cards: [ace, redSeven, blackEight] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+          { type: 'tableau', cards: [] },
+        ],
+      });
+      const move = {
+        type: 'tableau-to-foundation' as const,
+        fromPile: 'tableau' as const,
+        toPile: 'foundation' as const,
+        toIndex: 0,
+        cardId: '7h',
+      };
+      const result = moveCard(state, move);
+      expect(result.tableau[0].cards).toHaveLength(1);
+      expect(result.tableau[0].cards[0].id).toBe('ah');
+      expect(result.foundations[0].cards).toHaveLength(1);
+      expect(result.foundations[0].cards[0].id).toBe('7h');
     });
   });
 

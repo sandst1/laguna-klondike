@@ -63,13 +63,16 @@ export function undo(state: GameState): GameState {
   return { ...previous, undoHistory: state.undoHistory.slice(0, -1) };
 }
 
-function removeCardFromArray(cards: Card[], cardId: string): { removed: Card; rest: Card[] } {
+function removeCardAndAboveFromTableau(
+  cards: Card[],
+  cardId: string
+): { removed: Card[]; rest: Card[] } {
   const index = cards.findIndex((c) => c.id === cardId);
   if (index === -1) {
     throw new Error(`Card with id "${cardId}" not found in pile`);
   }
-  const removed = cards[index];
-  const rest = [...cards.slice(0, index), ...cards.slice(index + 1)];
+  const removed = cards.slice(index);
+  const rest = cards.slice(0, index);
   return { removed, rest };
 }
 
@@ -102,7 +105,7 @@ export function moveCard(state: GameState, move: Move): GameState {
       if (sourceIndex === -1) {
         return state;
       }
-      const { removed, rest: sourceRest } = removeCardFromArray(
+      const { removed, rest: sourceRest } = removeCardAndAboveFromTableau(
         state.tableau[sourceIndex].cards,
         cardId
       );
@@ -114,7 +117,7 @@ export function moveCard(state: GameState, move: Move): GameState {
           return { ...pile, cards: sourceRest };
         }
         if (i === toIndex) {
-          return { ...pile, cards: [...pile.cards, removed] };
+          return { ...pile, cards: [...pile.cards, ...removed] };
         }
         return pile;
       });
@@ -132,7 +135,7 @@ export function moveCard(state: GameState, move: Move): GameState {
       if (sourceIndex === -1) {
         return state;
       }
-      const { removed, rest: sourceRest } = removeCardFromArray(
+      const { removed, rest: sourceRest } = removeCardAndAboveFromTableau(
         state.tableau[sourceIndex].cards,
         cardId
       );
@@ -142,7 +145,7 @@ export function moveCard(state: GameState, move: Move): GameState {
       }
       const newFoundations = state.foundations.map((pile, i) => {
         if (i === foundationTarget) {
-          return { ...pile, cards: [...pile.cards, removed] };
+          return { ...pile, cards: [...pile.cards, removed[0]] };
         }
         return pile;
       });
