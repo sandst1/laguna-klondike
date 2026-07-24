@@ -23,11 +23,7 @@ export function StatsDisplay({ stats, winRate, onReset = () => {}, className }: 
   return (
     <section
       aria-label="Game statistics"
-      className={clsx(
-        'stats-display inline-flex items-center gap-6 rounded-lg bg-green-950/50 px-4 py-2 text-sm',
-        'sm:flex-wrap sm:justify-center',
-        className
-      )}
+      className={clsx('stats-display inline-flex items-center gap-6 text-sm', className)}
     >
       <div className="flex items-center gap-2">
         <span className="text-slate-300">Played:</span>

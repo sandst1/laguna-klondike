@@ -32,11 +32,7 @@ export function GameControls({
   return (
     <section
       aria-label="Game controls"
-      className={clsx(
-        'game-controls flex items-center justify-between gap-4 rounded-lg bg-green-950/50 px-4 py-2',
-        'sm:flex-col sm:items-stretch',
-        className
-      )}
+      className={clsx('game-controls flex items-center justify-between gap-4', className)}
     >
       <button
         type="button"

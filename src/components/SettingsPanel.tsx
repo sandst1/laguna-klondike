@@ -17,11 +17,7 @@ export function SettingsPanel({
   return (
     <section
       aria-label="Settings"
-      className={clsx(
-        'settings-panel inline-flex items-center gap-4 rounded-lg bg-green-950/50 px-4 py-2 text-sm',
-        'sm:flex-wrap sm:justify-center',
-        className
-      )}
+      className={clsx('settings-panel inline-flex items-center gap-4 text-sm', className)}
     >
       <div className="flex items-center gap-2">
         <span className="text-slate-300">Sound:</span>

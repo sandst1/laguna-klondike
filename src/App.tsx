@@ -33,6 +33,14 @@ function App() {
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-green-950 p-4 text-slate-100">
       <main className="flex w-full max-w-7xl flex-col items-center gap-4">
+        <header className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg bg-green-950/50 px-4 py-2 text-sm">
+          <GameControls state={state} onNewGame={handleNewGame} onUndo={handleUndo} />
+          <div className="flex flex-wrap items-center gap-2">
+            <SettingsPanel settings={settings} onSoundChange={handleSoundChange} />
+            <StatsDisplay stats={stats} onReset={resetStats} />
+          </div>
+        </header>
+
         <GameBoard
           state={state}
           move={actions.move}
@@ -40,13 +48,6 @@ function App() {
           selectCard={actions.selectCard}
           autoMove={actions.autoMove}
         />
-
-        <GameControls state={state} onNewGame={handleNewGame} onUndo={handleUndo} />
-
-        <div className="flex w-full flex-col items-center gap-2 sm:flex-row sm:justify-between">
-          <SettingsPanel settings={settings} onSoundChange={handleSoundChange} />
-          <StatsDisplay stats={stats} onReset={resetStats} />
-        </div>
       </main>
 
       {gameOver && (
