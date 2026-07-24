@@ -32,7 +32,7 @@ function App() {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-green-950 p-4 text-slate-100">
-      <main className="flex w-full max-w-7xl flex-col items-center gap-4">
+      <main className="flex w-full max-w-7xl flex-col items-center gap-2" style={{ transform: 'scale(0.9)', transformOrigin: 'top center' }}>
         <header className="flex w-full flex-wrap items-center justify-between gap-1.5 rounded-lg bg-green-950/50 px-3 py-1.5 text-sm">
           <GameControls state={state} onNewGame={handleNewGame} onUndo={handleUndo} />
           <div className="flex flex-wrap items-center gap-2">

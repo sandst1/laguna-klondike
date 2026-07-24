@@ -185,7 +185,7 @@
 
   .tableau-pile > .card-flip,
   .tableau-pile > button.card-flip {
-    margin-bottom: -100%;
+    margin-bottom: -90%;
   }
 
   .tableau-pile > .card-flip:last-child,
