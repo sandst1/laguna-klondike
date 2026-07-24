@@ -62,7 +62,7 @@ describe('loadSettings', () => {
     expect(loadSettings()).toEqual(DEFAULT_SETTINGS);
   });
 
-  it('falls back to defaults when drawMode is not 1 or 3', () => {
+  it('falls back to defaults when drawMode is not 1', () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ drawMode: 5, sound: 'yes', highContrast: null })
@@ -77,10 +77,10 @@ describe('loadSettings', () => {
     expect(loadSettings().drawMode).toBe(1);
   });
 
-  it('coerces any non-1 drawMode to 3', () => {
+  it('coerces any non-1 drawMode to 1', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ drawMode: 2 }));
 
-    expect(loadSettings().drawMode).toBe(3);
+    expect(loadSettings().drawMode).toBe(1);
   });
 
   it('falls back to default sound when value is not boolean', () => {
@@ -128,10 +128,10 @@ describe('saveSettings', () => {
 
   it('overwrites previous settings', () => {
     saveSettings({ drawMode: 1, sound: false, highContrast: true });
-    saveSettings({ drawMode: 3, sound: true, highContrast: false });
+    saveSettings({ drawMode: 1, sound: true, highContrast: false });
 
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({
-      drawMode: 3,
+      drawMode: 1,
       sound: true,
       highContrast: false,
     });
@@ -304,7 +304,7 @@ describe('useSettings', () => {
     it('adds the high-contrast class on initialization when stored as true', () => {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ drawMode: 3, sound: true, highContrast: true })
+        JSON.stringify({ drawMode: 1, sound: true, highContrast: true })
       );
 
       renderHook(() => useSettings());

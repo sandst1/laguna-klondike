@@ -7,7 +7,7 @@ const NUM_TABLEAU = 7;
 const TABLEAU_SIZES = [1, 2, 3, 4, 5, 6, 7];
 export const MAX_UNDO_HISTORY = 50;
 
-export function dealGame(drawMode: DrawMode = 3): GameState {
+export function dealGame(drawMode: DrawMode = 1): GameState {
   const deck = shuffle(createDeck());
 
   const tableau: Pile[] = TABLEAU_SIZES.map(() => ({

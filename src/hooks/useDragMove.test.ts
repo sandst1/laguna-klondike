@@ -35,7 +35,7 @@ const makeGameState = (overrides: Partial<GameState> = {}): GameState => ({
   ],
   moves: [],
   gameOver: false,
-  drawMode: 3,
+  drawMode: 1,
   selectedCardId: null,
   undoHistory: [],
   ...overrides,

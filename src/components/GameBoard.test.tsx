@@ -8,7 +8,7 @@ import type { GameState, Card, Pile } from '../types';
 import { dealGame } from '../game/game';
 
 const makeGameState = (overrides: Partial<GameState>): GameState => ({
-  ...dealGame(3),
+  ...dealGame(1),
   ...overrides,
 });
 

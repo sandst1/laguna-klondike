@@ -30,14 +30,14 @@ describe('useGameState', () => {
       expect(result.current.state.selectedCardId).toBe(null);
     });
 
-    it('defaults drawMode to 3', () => {
+    it('defaults drawMode to 1', () => {
       const { result } = renderHook(() => useGameState());
-      expect(result.current.state.drawMode).toBe(3);
+      expect(result.current.state.drawMode).toBe(1);
     });
 
     it('uses the provided drawMode', () => {
-      const { result } = renderHook(() => useGameState(1));
-      expect(result.current.state.drawMode).toBe(1);
+      const { result } = renderHook(() => useGameState(3));
+      expect(result.current.state.drawMode).toBe(3);
     });
 
     it('deals all 52 unique cards', () => {
@@ -85,23 +85,23 @@ describe('useGameState', () => {
     });
 
     it('deals with the provided drawMode', () => {
-      const { result } = renderHook(() => useGameState(3));
+      const { result } = renderHook(() => useGameState());
 
       act(() => {
-        result.current.actions.deal(1);
+        result.current.actions.deal(3);
       });
 
-      expect(result.current.state.drawMode).toBe(1);
+      expect(result.current.state.drawMode).toBe(3);
     });
 
     it('deals with the default drawMode when none is provided', () => {
-      const { result } = renderHook(() => useGameState(1));
+      const { result } = renderHook(() => useGameState(3));
 
       act(() => {
         result.current.actions.deal();
       });
 
-      expect(result.current.state.drawMode).toBe(3);
+      expect(result.current.state.drawMode).toBe(1);
     });
 
     it('produces a different card order on each deal with high probability', () => {

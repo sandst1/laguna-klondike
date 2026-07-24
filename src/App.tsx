@@ -3,13 +3,12 @@ import { GameBoard } from './components/GameBoard';
 import { GameControls } from './components/GameControls';
 import { SettingsPanel } from './components/SettingsPanel';
 import { StatsDisplay } from './components/StatsDisplay';
-import { DrawModeToggle } from './components/DrawModeToggle';
 import { useGameState } from './hooks/useGameState';
 import { useSettings } from './hooks/useSettings';
 import { useStats } from './hooks/useStats';
 
 function App() {
-  const { settings, setDrawMode, setSound, setHighContrast } = useSettings();
+  const { settings, setSound, setHighContrast } = useSettings();
   const { state, actions, gameOver } = useGameState(settings.drawMode, settings.sound);
   const { stats, recordGame, resetStats } = useStats();
 
@@ -35,15 +34,10 @@ function App() {
     setHighContrast(highContrast);
   };
 
-  const handleDrawModeChange = (drawMode: typeof settings.drawMode) => {
-    setDrawMode(drawMode);
-  };
-
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-green-950 p-4 text-slate-100">
       <header className="flex flex-col items-center gap-2">
         <h1 className="text-3xl font-bold">Klondike Solitaire</h1>
-        <DrawModeToggle drawMode={settings.drawMode} onChange={handleDrawModeChange} />
       </header>
 
       <main className="flex w-full max-w-7xl flex-col items-center gap-4">

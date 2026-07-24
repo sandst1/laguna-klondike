@@ -161,10 +161,6 @@
     transform: rotateY(-180deg);
   }
 
-  .card-face-up-content {
-    transform: rotateY(180deg);
-  }
-
   .card-flip-front,
   .card-flip-back {
     position: absolute;
@@ -489,23 +485,20 @@
 
   .high-contrast .game-controls,
   .high-contrast .stats-display,
-  .high-contrast .settings-panel,
-  .high-contrast .draw-mode-toggle {
+  .high-contrast .settings-panel {
     background-color: var(--hc-surface);
     border-color: var(--hc-border);
   }
 
   .high-contrast .game-controls,
   .high-contrast .stats-display,
-  .high-contrast .settings-panel,
-  .high-contrast .draw-mode-toggle {
+  .high-contrast .settings-panel {
     color: var(--hc-text);
   }
 
   .high-contrast .game-controls span,
   .high-contrast .stats-display span,
-  .high-contrast .settings-panel span,
-  .high-contrast .draw-mode-toggle span {
+  .high-contrast .settings-panel span {
     color: var(--hc-text-muted);
   }
 
@@ -516,8 +509,7 @@
 
   .high-contrast .game-controls button,
   .high-contrast .stats-display button,
-  .high-contrast .settings-panel button,
-  .high-contrast .draw-mode-toggle button {
+  .high-contrast .settings-panel button {
     border-color: var(--hc-border);
   }
 
@@ -540,21 +532,18 @@
   }
 
   .high-contrast .settings-panel [data-testid='sound-toggle'],
-  .high-contrast .settings-panel [data-testid='high-contrast-toggle'],
-  .high-contrast .draw-mode-toggle [data-testid^='draw-mode'] {
+  .high-contrast .settings-panel [data-testid='high-contrast-toggle'] {
     border-color: var(--hc-border);
   }
 
   .high-contrast .settings-panel [data-testid='sound-toggle'][aria-pressed='true'],
-  .high-contrast .settings-panel [data-testid='high-contrast-toggle'][aria-pressed='true'],
-  .high-contrast .draw-mode-toggle [data-testid^='draw-mode'][aria-pressed='true'] {
+  .high-contrast .settings-panel [data-testid='high-contrast-toggle'][aria-pressed='true'] {
     background-color: var(--hc-accent);
     color: var(--hc-accent-text);
   }
 
   .high-contrast .settings-panel [data-testid='sound-toggle'][aria-pressed='false']:hover,
-  .high-contrast .settings-panel [data-testid='high-contrast-toggle'][aria-pressed='false']:hover,
-  .high-contrast .draw-mode-toggle [data-testid^='draw-mode'][aria-pressed='false']:hover {
+  .high-contrast .settings-panel [data-testid='high-contrast-toggle'][aria-pressed='false']:hover {
     background-color: var(--hc-surface);
     color: var(--hc-text);
   }

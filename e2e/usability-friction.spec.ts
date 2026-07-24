@@ -114,7 +114,7 @@ test.describe('Usability friction — play-through', () => {
 
     // Move counter should have incremented for the recycle
     const finalMoveText = await moveCounter.textContent();
-    if (finalMoveText === 'Moves: 3') {
+    if (finalMoveText === 'Moves: 1') {
       friction.add('stock-recycle', 'Move counter did not increment on recycle', 'medium');
     }
   });
@@ -148,7 +148,7 @@ test.describe('Usability friction — play-through', () => {
           tableau,
           moves: [],
           gameOver: false,
-          drawMode: 3,
+          drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },
@@ -227,7 +227,7 @@ test.describe('Usability friction — play-through', () => {
           tableau,
           moves: [],
           gameOver: false,
-          drawMode: 3,
+          drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },
@@ -305,7 +305,7 @@ test.describe('Usability friction — play-through', () => {
           tableau,
           moves: [],
           gameOver: false,
-          drawMode: 3,
+          drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },
@@ -488,60 +488,6 @@ test.describe('Usability friction — play-through', () => {
     }
   });
 
-  test('draw mode toggle switches between 1 and 3 card draw', async ({ page }) => {
-    const drawMode1 = page.getByTestId('draw-mode-1');
-    const drawMode3 = page.getByTestId('draw-mode-3');
-
-    // Should be visible
-    await expect(drawMode1).toBeVisible();
-    await expect(drawMode3).toBeVisible();
-
-    // Default should be draw 3
-    const pressed3 = await drawMode3.getAttribute('aria-pressed');
-    if (pressed3 !== 'true') {
-      friction.add('draw-mode', 'Draw 3 is not the default mode', 'low');
-    }
-
-    // Switch to draw 1
-    await drawMode1.click();
-    await page.waitForTimeout(150);
-
-    const pressed1After = await drawMode1.getAttribute('aria-pressed');
-    if (pressed1After !== 'true') {
-      friction.add('draw-mode', 'Draw 1 toggle did not activate after click', 'high');
-    }
-
-    // Draw from stock — should draw 1 card
-    const stock = page.getByLabel(/Stock pile/);
-    await stock.click();
-    await page.waitForTimeout(300);
-
-    const wasteCard = page.getByLabel('Waste pile').locator('button[aria-label$="card"]');
-    const wasteCount = await wasteCard.count();
-    if (wasteCount !== 1) {
-      friction.add('draw-mode', `Draw 1 mode showed ${wasteCount} waste cards instead of 1`, 'high');
-    }
-
-    // Switch back to draw 3
-    await drawMode3.click();
-    await page.waitForTimeout(150);
-
-    // New game to reset
-    await page.getByTestId('new-game-button').click();
-    await page.waitForTimeout(300);
-
-    // Draw from stock — should draw 3 cards
-    const stock2 = page.getByLabel(/Stock pile/);
-    await stock2.click();
-    await page.waitForTimeout(300);
-
-    const wasteCard2 = page.getByLabel('Waste pile').locator('button[aria-label$="card"]');
-    const wasteCount2 = await wasteCard2.count();
-    if (wasteCount2 !== 3) {
-      friction.add('draw-mode', `Draw 3 mode showed ${wasteCount2} waste cards instead of 3`, 'high');
-    }
-  });
-
   test('move animation is smooth and does not block interaction', async ({ page }) => {
     await page.evaluate(() => {
       const dispatch = window.__klondikeDispatch;
@@ -570,7 +516,7 @@ test.describe('Usability friction — play-through', () => {
           tableau,
           moves: [],
           gameOver: false,
-          drawMode: 3,
+          drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },
@@ -651,7 +597,7 @@ test.describe('Usability friction — play-through', () => {
           tableau,
           moves: [],
           gameOver: false,
-          drawMode: 3,
+          drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },
@@ -722,7 +668,7 @@ test.describe('Usability friction — play-through', () => {
           tableau,
           moves: [],
           gameOver: true,
-          drawMode: 3,
+          drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },
@@ -811,7 +757,7 @@ test.describe('Usability friction — play-through', () => {
           tableau,
           moves: [],
           gameOver: false,
-          drawMode: 3,
+          drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },

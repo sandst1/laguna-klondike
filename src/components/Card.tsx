@@ -47,9 +47,9 @@ export function Card({
   const faceDownClasses = 'bg-green-900 border-green-950';
 
   const faceUpSideClasses =
-    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-white backface-visibility-hidden';
+    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-white backface-hidden';
   const faceDownSideClasses =
-    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-green-900 backface-visibility-hidden';
+    'absolute inset-0 flex items-center justify-center rounded-xl border-2 border-white bg-green-900 backface-hidden';
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: card.id,
@@ -135,8 +135,8 @@ export function Card({
             </div>
           </div>
         </div>
-        <div className={clsx(faceUpSideClasses, faceUpClasses)} aria-hidden="true">
-          <div className="card-face-up-content absolute inset-0 flex h-full w-full flex-col items-center justify-between p-2.5 text-xl font-bold leading-tight sm:text-lg">
+        <div className={clsx(faceUpSideClasses, faceUpClasses, 'card-flip-back')} aria-hidden="true">
+          <div className="absolute inset-0 flex h-full w-full flex-col items-center justify-between p-2.5 text-xl font-bold leading-tight sm:text-lg">
             <span className="self-start">{label}</span>
             <span className="text-5xl sm:text-3xl" aria-hidden="true">
               {symbol}

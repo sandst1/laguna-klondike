@@ -25,6 +25,8 @@ src/
   main.tsx
 ```
 
+The game uses draw-1 mode only (one card drawn from stock per click). The `DrawMode` type remains `1 | 3` for backwards compatibility, but `drawMode` always defaults to `1` and `loadSettings` coerces any non-1 value to `1`.
+
 ## Development
 
 ```bash
@@ -145,3 +147,17 @@ npx tsc --noEmit  # typecheck
 - `useGameState` exposes a `window.__klondikeDispatch` function in development mode that allows Playwright tests to dispatch game state actions (e.g., `deal`, `move`, `setState`) directly from `page.evaluate()`.
 - The `setState` action type allows replacing the entire `GameState` — useful for setting up specific scenarios like a winning game (all foundations filled) without playing through the full game.
 - Win detection tests use this hook to set up a winning state and verify the win overlay appears/disappears correctly.
+
+## Draw Mode
+
+- The game uses draw-1 mode only (one card drawn from stock per click).
+- The `DrawMode` type remains `1 | 3` for backwards compatibility, but `drawMode` always defaults to `1` and `loadSettings` coerces any non-1 value to `1`.
+- The `DrawModeToggle` component and its UI have been removed; the game always draws 1 card per stock click.
+
+## Tableau Move Rules
+
+- In tableau piles, a card can be placed on another card only if:
+  - The card is **one rank lower** (e.g., J on Q, 5 on 6, A on 2).
+  - The card is **opposite color** (red on black, black on red).
+- Only a **King** (rank 13) can be placed on an **empty** tableau pile.
+- Suits do not matter for tableau-to-tableau moves; only rank and color.

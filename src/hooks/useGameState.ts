@@ -31,7 +31,7 @@ export type GameStateAction =
 function gameStateReducer(state: GameState, action: GameStateAction): GameState {
   switch (action.type) {
     case 'deal':
-      return dealGame(action.drawMode ?? 3);
+      return dealGame(action.drawMode ?? 1);
     case 'draw':
       return drawFromStock(state);
     case 'move':
@@ -51,7 +51,7 @@ function gameStateReducer(state: GameState, action: GameStateAction): GameState 
   }
 }
 
-export function useGameState(initialDrawMode: DrawMode = 3, soundEnabled: boolean = true) {
+export function useGameState(initialDrawMode: DrawMode = 1, soundEnabled: boolean = true) {
   const [state, dispatch] = useReducer(gameStateReducer, undefined, () =>
     dealGame(initialDrawMode)
   );

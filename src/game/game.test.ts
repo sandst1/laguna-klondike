@@ -94,14 +94,14 @@ describe('dealGame', () => {
     expect(state.selectedCardId).toBe(null);
   });
 
-  it('defaults drawMode to 3', () => {
+  it('defaults drawMode to 1', () => {
     const state = dealGame();
-    expect(state.drawMode).toBe(3);
+    expect(state.drawMode).toBe(1);
   });
 
   it('uses the provided drawMode when passed', () => {
-    const state = dealGame(1);
-    expect(state.drawMode).toBe(1);
+    const state = dealGame(3);
+    expect(state.drawMode).toBe(3);
   });
 
   it('deals all 52 unique cards (no duplicates)', () => {
@@ -164,7 +164,7 @@ describe('drawFromStock', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 3,
+    drawMode: 1,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -426,7 +426,7 @@ describe('flipTableauCard', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 3,
+    drawMode: 1,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -579,7 +579,7 @@ describe('autoMoveToFoundation', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 3,
+    drawMode: 1,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -730,7 +730,7 @@ describe('checkWin', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 3,
+    drawMode: 1,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -814,7 +814,7 @@ describe('moveCard', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 3,
+    drawMode: 1,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -1406,7 +1406,7 @@ describe('selectCard', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 3,
+    drawMode: 1,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,
@@ -1473,7 +1473,7 @@ describe('undo', () => {
     tableau: Array.from({ length: 7 }, () => ({ type: 'tableau' as const, cards: [] })),
     moves: [],
     gameOver: false,
-    drawMode: 3,
+    drawMode: 1,
     selectedCardId: null,
     undoHistory: [],
     ...overrides,

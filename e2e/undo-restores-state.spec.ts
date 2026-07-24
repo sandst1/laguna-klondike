@@ -18,8 +18,8 @@ test.describe('Undo restores state', () => {
 
     await page.waitForTimeout(300);
 
-    await expect(page.getByLabel('Stock pile, 21 cards remaining')).toBeVisible();
-    await expect(page.getByTestId('move-counter')).toHaveText('Moves: 3');
+    await expect(page.getByLabel('Stock pile, 23 cards remaining')).toBeVisible();
+    await expect(page.getByTestId('move-counter')).toHaveText('Moves: 1');
 
     const undoButton = page.getByTestId('undo-button');
     await expect(undoButton).toBeEnabled();
@@ -62,7 +62,7 @@ test.describe('Undo restores state', () => {
           tableau,
           moves: [],
           gameOver: false,
-          drawMode: 3,
+           drawMode: 1,
           selectedCardId: null,
           undoHistory: [],
         },

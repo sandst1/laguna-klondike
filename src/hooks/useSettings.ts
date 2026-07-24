@@ -10,7 +10,7 @@ export interface Settings {
 export const STORAGE_KEY = 'klondike-settings';
 
 export const DEFAULT_SETTINGS: Settings = {
-  drawMode: 3,
+  drawMode: 1,
   sound: true,
   highContrast: false,
 };
@@ -26,7 +26,7 @@ export function loadSettings(): Settings {
     }
     const parsed = JSON.parse(raw);
     return {
-      drawMode: parsed.drawMode === 1 ? 1 : 3,
+      drawMode: 1,
       sound: typeof parsed.sound === 'boolean' ? parsed.sound : DEFAULT_SETTINGS.sound,
       highContrast:
         typeof parsed.highContrast === 'boolean'
