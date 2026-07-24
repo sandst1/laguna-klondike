@@ -8,7 +8,7 @@ import { useSettings } from './hooks/useSettings';
 import { useStats } from './hooks/useStats';
 
 function App() {
-  const { settings, setSound, setHighContrast } = useSettings();
+  const { settings, setSound } = useSettings();
   const { state, actions, gameOver } = useGameState(settings.drawMode, settings.sound);
   const { stats, recordGame, resetStats } = useStats();
 
@@ -30,16 +30,8 @@ function App() {
     setSound(sound);
   };
 
-  const handleHighContrastChange = (highContrast: boolean) => {
-    setHighContrast(highContrast);
-  };
-
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-green-950 p-4 text-slate-100">
-      <header className="flex flex-col items-center gap-2">
-        <h1 className="text-3xl font-bold">Klondike Solitaire</h1>
-      </header>
-
       <main className="flex w-full max-w-7xl flex-col items-center gap-4">
         <GameBoard
           state={state}
@@ -52,11 +44,7 @@ function App() {
         <GameControls state={state} onNewGame={handleNewGame} onUndo={handleUndo} />
 
         <div className="flex w-full flex-col items-center gap-2 sm:flex-row sm:justify-between">
-          <SettingsPanel
-            settings={settings}
-            onSoundChange={handleSoundChange}
-            onHighContrastChange={handleHighContrastChange}
-          />
+          <SettingsPanel settings={settings} onSoundChange={handleSoundChange} />
           <StatsDisplay stats={stats} onReset={resetStats} />
         </div>
       </main>

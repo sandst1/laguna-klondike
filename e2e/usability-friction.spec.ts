@@ -92,11 +92,17 @@ test.describe('Usability friction — play-through', () => {
     }
 
     // Draw again to use up the stock
-    let stockCount = parseInt((await stock.getAttribute('aria-label'))?.match(/(\d+) cards/)?.[1] ?? '0', 10);
+    let stockCount = parseInt(
+      (await stock.getAttribute('aria-label'))?.match(/(\d+) cards/)?.[1] ?? '0',
+      10
+    );
     while (stockCount > 0) {
       await stock.click();
       await page.waitForTimeout(200);
-      stockCount = parseInt((await stock.getAttribute('aria-label'))?.match(/(\d+) cards/)?.[1] ?? '0', 10);
+      stockCount = parseInt(
+        (await stock.getAttribute('aria-label'))?.match(/(\d+) cards/)?.[1] ?? '0',
+        10
+      );
     }
 
     // Stock should now be empty
@@ -144,7 +150,10 @@ test.describe('Usability friction — play-through', () => {
           deck: [],
           stock: [],
           waste: [],
-          foundations: Array.from({ length: 4 }, () => ({ type: 'foundation' as const, cards: [] })),
+          foundations: Array.from({ length: 4 }, () => ({
+            type: 'foundation' as const,
+            cards: [],
+          })),
           tableau,
           moves: [],
           gameOver: false,
@@ -170,7 +179,11 @@ test.describe('Usability friction — play-through', () => {
     // Foundation should highlight as a valid drop target
     const foundationClasses = await foundation.getAttribute('class');
     if (!foundationClasses?.includes('ring-blue-400')) {
-      friction.add('drag-feedback', 'Foundation did not highlight as valid drop target during drag', 'high');
+      friction.add(
+        'drag-feedback',
+        'Foundation did not highlight as valid drop target during drag',
+        'high'
+      );
     }
 
     // Complete the drag
@@ -195,7 +208,11 @@ test.describe('Usability friction — play-through', () => {
     // Move counter should increment
     const moveText = await page.getByTestId('move-counter').textContent();
     if (moveText !== 'Moves: 1') {
-      friction.add('drag-drop', `Move counter is "${moveText}" instead of "Moves: 1" after drag`, 'medium');
+      friction.add(
+        'drag-drop',
+        `Move counter is "${moveText}" instead of "Moves: 1" after drag`,
+        'medium'
+      );
     }
   });
 
@@ -223,7 +240,10 @@ test.describe('Usability friction — play-through', () => {
           deck: [],
           stock: [],
           waste: [],
-          foundations: Array.from({ length: 4 }, () => ({ type: 'foundation' as const, cards: [] })),
+          foundations: Array.from({ length: 4 }, () => ({
+            type: 'foundation' as const,
+            cards: [],
+          })),
           tableau,
           moves: [],
           gameOver: false,
@@ -301,7 +321,10 @@ test.describe('Usability friction — play-through', () => {
           deck: [],
           stock: [],
           waste: [],
-          foundations: Array.from({ length: 4 }, () => ({ type: 'foundation' as const, cards: [] })),
+          foundations: Array.from({ length: 4 }, () => ({
+            type: 'foundation' as const,
+            cards: [],
+          })),
           tableau,
           moves: [],
           gameOver: false,
@@ -331,7 +354,11 @@ test.describe('Usability friction — play-through', () => {
     // Move counter should increment
     const moveText = await page.getByTestId('move-counter').textContent();
     if (moveText !== 'Moves: 1') {
-      friction.add('double-click', `Move counter is "${moveText}" instead of "Moves: 1" after auto-move`, 'medium');
+      friction.add(
+        'double-click',
+        `Move counter is "${moveText}" instead of "Moves: 1" after auto-move`,
+        'medium'
+      );
     }
   });
 
@@ -445,49 +472,6 @@ test.describe('Usability friction — play-through', () => {
     }
   });
 
-  test('high contrast toggle is discoverable and applies to document', async ({ page }) => {
-    const hcToggle = page.getByTestId('high-contrast-toggle');
-
-    // Should be visible
-    await expect(hcToggle).toBeVisible();
-
-    // Should have an accessible label
-    const hcLabel = await hcToggle.getAttribute('aria-label');
-    if (!hcLabel) {
-      friction.add('settings', 'High contrast toggle has no aria-label for accessibility', 'low');
-    }
-
-    // Should be off by default
-    const pressed = await hcToggle.getAttribute('aria-pressed');
-    if (pressed !== 'false') {
-      friction.add('settings', 'High contrast toggle does not reflect default off state', 'medium');
-    }
-
-    // Toggle on
-    await hcToggle.click();
-    await page.waitForTimeout(150);
-
-    const pressedAfter = await hcToggle.getAttribute('aria-pressed');
-    if (pressedAfter !== 'true') {
-      friction.add('settings', 'High contrast toggle did not turn on after click', 'high');
-    }
-
-    // The high-contrast class should be applied to the document element
-    const hasClass = await page.evaluate(() => document.documentElement.classList.contains('high-contrast'));
-    if (!hasClass) {
-      friction.add('settings', 'high-contrast class was not applied to document element', 'high');
-    }
-
-    // Toggle off
-    await hcToggle.click();
-    await page.waitForTimeout(150);
-
-    const hasClassAfter = await page.evaluate(() => document.documentElement.classList.contains('high-contrast'));
-    if (hasClassAfter) {
-      friction.add('settings', 'high-contrast class was not removed from document element', 'high');
-    }
-  });
-
   test('move animation is smooth and does not block interaction', async ({ page }) => {
     await page.evaluate(() => {
       const dispatch = window.__klondikeDispatch;
@@ -512,7 +496,10 @@ test.describe('Usability friction — play-through', () => {
           deck: [],
           stock: [],
           waste: [],
-          foundations: Array.from({ length: 4 }, () => ({ type: 'foundation' as const, cards: [] })),
+          foundations: Array.from({ length: 4 }, () => ({
+            type: 'foundation' as const,
+            cards: [],
+          })),
           tableau,
           moves: [],
           gameOver: false,
@@ -549,7 +536,11 @@ test.describe('Usability friction — play-through', () => {
     // Overlay should be gone after animation
     const overlayCount = await overlay.count();
     if (overlayCount > 0) {
-      friction.add('animation', 'Move animation overlay was not removed after transition', 'medium');
+      friction.add(
+        'animation',
+        'Move animation overlay was not removed after transition',
+        'medium'
+      );
     }
 
     // Card should be in the foundation
@@ -593,7 +584,10 @@ test.describe('Usability friction — play-through', () => {
           deck: [],
           stock: [],
           waste: [],
-          foundations: Array.from({ length: 4 }, () => ({ type: 'foundation' as const, cards: [] })),
+          foundations: Array.from({ length: 4 }, () => ({
+            type: 'foundation' as const,
+            cards: [],
+          })),
           tableau,
           moves: [],
           gameOver: false,
@@ -617,18 +611,28 @@ test.describe('Usability friction — play-through', () => {
     // Tableau 2 should NOT highlight (same color, invalid move)
     const tableau2Classes = await tableau2.getAttribute('class');
     if (tableau2Classes?.includes('ring-blue-400')) {
-      friction.add('drag-validation', 'Invalid tableau-to-tableau move was highlighted as valid', 'high');
+      friction.add(
+        'drag-validation',
+        'Invalid tableau-to-tableau move was highlighted as valid',
+        'high'
+      );
     }
 
     await page.mouse.up();
 
     // Card should not have moved
-    const foundationCard = page.getByLabel('Foundation pile 1').locator('button[aria-label$="card"]');
+    const foundationCard = page
+      .getByLabel('Foundation pile 1')
+      .locator('button[aria-label$="card"]');
     // King should still be in tableau 1
     const tableau1Card = page.getByLabel('Tableau pile 1').locator('button[aria-label$="card"]');
     const count = await tableau1Card.count();
     if (count !== 1) {
-      friction.add('drag-validation', 'Card was removed from tableau after invalid drag attempt', 'high');
+      friction.add(
+        'drag-validation',
+        'Card was removed from tableau after invalid drag attempt',
+        'high'
+      );
     }
   });
 
@@ -753,7 +757,10 @@ test.describe('Usability friction — play-through', () => {
           deck: [],
           stock: [],
           waste: [],
-          foundations: Array.from({ length: 4 }, () => ({ type: 'foundation' as const, cards: [] })),
+          foundations: Array.from({ length: 4 }, () => ({
+            type: 'foundation' as const,
+            cards: [],
+          })),
           tableau,
           moves: [],
           gameOver: false,
@@ -800,11 +807,6 @@ test.describe('Usability friction — play-through', () => {
     await soundToggle.click();
     await page.waitForTimeout(150);
 
-    // Turn on high contrast
-    const hcToggle = page.getByTestId('high-contrast-toggle');
-    await hcToggle.click();
-    await page.waitForTimeout(150);
-
     // Reload the page
     await page.reload();
     await page.waitForTimeout(300);
@@ -813,18 +815,6 @@ test.describe('Usability friction — play-through', () => {
     const soundPressed = await soundToggle.getAttribute('aria-pressed');
     if (soundPressed !== 'false') {
       friction.add('persistence', 'Sound setting did not persist across page reload', 'medium');
-    }
-
-    // High contrast should still be on
-    const hcPressed = await hcToggle.getAttribute('aria-pressed');
-    if (hcPressed !== 'true') {
-      friction.add('persistence', 'High contrast setting did not persist across page reload', 'medium');
-    }
-
-    // The high-contrast class should be on the document element
-    const hasClass = await page.evaluate(() => document.documentElement.classList.contains('high-contrast'));
-    if (!hasClass) {
-      friction.add('persistence', 'high-contrast class was not restored after page reload', 'medium');
     }
   });
 

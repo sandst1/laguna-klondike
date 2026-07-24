@@ -122,15 +122,6 @@ npx tsc --noEmit  # typecheck
 - CSS class `.move-animation-overlay` is defined in `src/index.css` under `@layer components`.
 - The `Card` component includes a `data-card-id` attribute for DOM element lookup during animation.
 
-## High-Contrast Mode
-
-- The `highContrast` setting is stored in `useSettings` (persisted to `localStorage` via `STORAGE_KEY`).
-- `useSettings` includes a `useEffect` that toggles the `high-contrast` class on `document.documentElement` whenever `settings.highContrast` changes.
-- `SettingsPanel` exposes a `onHighContrastChange` callback and a `data-testid="high-contrast-toggle"` button with `aria-pressed` reflecting the current state.
-- High-contrast CSS styles are defined in `src/index.css` under `@layer components`, scoped to the `.high-contrast` class. They override the default palette to a black/white/yellow high-contrast scheme for cards (face-up white with black text, face-down white with black motifs), piles (black felt with white borders, empty piles dark gray with white dashed borders), controls (dark gray surfaces with white borders, yellow accent buttons), and text.
-- Card selected state uses a yellow ring (`--hc-ring`) with black offset in high-contrast mode.
-- Tests in `src/hooks/useSettings.test.ts` verify the `high-contrast` class is added/removed on the document element when the setting changes.
-
 ## Sound Effects
 
 - The `useSound` hook (`src/hooks/useSound.ts`) uses the Web Audio API to generate simple sine-wave tones for game events — no audio files are needed.

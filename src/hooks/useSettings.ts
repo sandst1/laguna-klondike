@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { DrawMode } from '../types';
 
 export interface Settings {
   drawMode: DrawMode;
   sound: boolean;
-  highContrast: boolean;
 }
 
 export const STORAGE_KEY = 'klondike-settings';
@@ -12,7 +11,6 @@ export const STORAGE_KEY = 'klondike-settings';
 export const DEFAULT_SETTINGS: Settings = {
   drawMode: 1,
   sound: true,
-  highContrast: false,
 };
 
 export function loadSettings(): Settings {
@@ -28,10 +26,6 @@ export function loadSettings(): Settings {
     return {
       drawMode: 1,
       sound: typeof parsed.sound === 'boolean' ? parsed.sound : DEFAULT_SETTINGS.sound,
-      highContrast:
-        typeof parsed.highContrast === 'boolean'
-          ? parsed.highContrast
-          : DEFAULT_SETTINGS.highContrast,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -52,17 +46,6 @@ export function saveSettings(settings: Settings): void {
 export function useSettings() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
 
-  useEffect(() => {
-    if (typeof document === 'undefined') {
-      return;
-    }
-    if (settings.highContrast) {
-      document.documentElement.classList.add('high-contrast');
-    } else {
-      document.documentElement.classList.remove('high-contrast');
-    }
-  }, [settings.highContrast]);
-
   const setDrawMode = useCallback((drawMode: DrawMode) => {
     setSettings((prev) => {
       const next = { ...prev, drawMode };
@@ -74,14 +57,6 @@ export function useSettings() {
   const setSound = useCallback((sound: boolean) => {
     setSettings((prev) => {
       const next = { ...prev, sound };
-      saveSettings(next);
-      return next;
-    });
-  }, []);
-
-  const setHighContrast = useCallback((highContrast: boolean) => {
-    setSettings((prev) => {
-      const next = { ...prev, highContrast };
       saveSettings(next);
       return next;
     });
@@ -99,10 +74,8 @@ export function useSettings() {
     settings,
     drawMode: settings.drawMode,
     sound: settings.sound,
-    highContrast: settings.highContrast,
     setDrawMode,
     setSound,
-    setHighContrast,
     updateSettings,
   };
 }
