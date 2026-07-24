@@ -55,7 +55,7 @@ export function WastePile({
       ) : (
         <div
           aria-label="Empty waste pile"
-          className="flex aspect-[7/10] w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-100 cursor-pointer"
+          className="flex aspect-[7/10] w-full max-w-[200px] items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-100 cursor-pointer sm:max-w-[150px]"
           onClick={onPileClick}
         />
       )}

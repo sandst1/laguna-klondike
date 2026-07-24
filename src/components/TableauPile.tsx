@@ -62,7 +62,7 @@ export function TableauPile({
       {cards.length === 0 && (
         <div
           aria-label={`Empty tableau pile ${index + 1}`}
-          className="flex aspect-[7/10] w-full items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-300 cursor-pointer"
+          className="flex aspect-[7/10] w-full max-w-[200px] items-center justify-center rounded-xl border-2 border-dashed border-slate-400 bg-slate-300 cursor-pointer sm:max-w-[150px]"
           onClick={onPileClick}
         />
       )}

@@ -6,6 +6,7 @@ import FoundationPile from './FoundationPile';
 import TableauPile from './TableauPile';
 import WastePile from './WastePile';
 import Card from './Card';
+import { CardBack } from './CardBack';
 import { useDragMove } from '../hooks/useDragMove';
 import { useMoveAnimation, MoveAnimatorProvider } from '../hooks/useMoveAnimation';
 import type { DropTarget } from '../game/rules';
@@ -157,13 +158,18 @@ function GameBoardInner({
             <div
               data-testid="stock-pile"
               aria-label={`Stock pile, ${stock.length} cards remaining`}
-              className="relative flex aspect-[7/10] w-[240px] items-center justify-center rounded-xl border-2 border-green-950 bg-green-900 cursor-pointer transition-colors duration-150 hover:brightness-110 sm:w-[180px]"
+              className="relative flex aspect-[7/10] w-[200px] items-center justify-center rounded-xl border-2 border-white bg-green-900 card-back cursor-pointer transition-colors duration-150 hover:brightness-110 sm:w-[150px]"
               onClick={() => {
                 if (stock.length > 0 || waste.length > 0) {
                   draw();
                 }
               }}
             >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative flex h-full w-full items-center justify-center">
+                  <CardBack />
+                </div>
+              </div>
               {stock.length > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white sm:h-4 sm:w-4">
                   {stock.length}
