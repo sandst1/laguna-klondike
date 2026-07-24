@@ -112,16 +112,6 @@ npx tsc --noEmit  # typecheck
 - `useGameState` exposes `actions.undo` which dispatches an `undo` action through the reducer.
 - `deal` resets the history (fresh game starts with empty `undoHistory`).
 
-## Move Animation (Card Travel Between Piles)
-
-- When a card move is executed (via drag-and-drop, click-to-move, or double-click auto-move), a `MoveAnimatorProvider` renders a temporary overlay card that animates from the source pile position to the target pile position.
-- The `useMoveAnimation` hook provides `startMoveAnimation(card, sourceEl, targetEl)` which captures the source and target DOM element bounding rects and creates a `MoveAnimation` entry.
-- `GameBoard` wraps the `move` and `autoMove` callbacks with `moveWithAnimation` and `autoMoveWithAnimation` that find the source card element (via `data-card-id` attribute) and target pile element (via `data-{pileType}-index` attribute) before calling `startMoveAnimation`.
-- The `MoveAnimationOverlay` component renders a `Card` at the source position with a CSS `transform` transition to the target position, using `translate3d` and `scale` to match the target size. The transition is 300ms with a `cubic-bezier(0.4, 0, 0.2, 1)` easing curve.
-- The overlay is removed when the `transitionend` event fires.
-- CSS class `.move-animation-overlay` is defined in `src/index.css` under `@layer components`.
-- The `Card` component includes a `data-card-id` attribute for DOM element lookup during animation.
-
 ## Sound Effects
 
 - The `useSound` hook (`src/hooks/useSound.ts`) uses the Web Audio API to generate simple sine-wave tones for game events — no audio files are needed.

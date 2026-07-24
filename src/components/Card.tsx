@@ -73,7 +73,6 @@ export function Card({
           : 'face-down card'
       }
       data-selected={isSelected}
-      data-card-id={card.id}
       className={clsx(
         baseClasses,
         'card-flip',

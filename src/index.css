@@ -214,18 +214,6 @@
       rgba(0, 0, 0, 0.1) 0 4px 6px -2px;
   }
 
-  .move-animation-overlay {
-    position: fixed;
-    left: 0;
-    top: 0;
-    pointer-events: none;
-    z-index: 100;
-  }
-
-  .move-animation-overlay[data-animating='true'] {
-    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
   .counter {
     font-size: 16px;
     padding: 5px 10px;

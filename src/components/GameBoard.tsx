@@ -8,10 +8,7 @@ import WastePile from './WastePile';
 import Card from './Card';
 import { CardBack } from './CardBack';
 import { useDragMove } from '../hooks/useDragMove';
-import { useMoveAnimation, MoveAnimatorProvider } from '../hooks/useMoveAnimation';
 import type { DropTarget } from '../game/rules';
-import { findCardById } from '../game/rules';
-import { canMoveToFoundation } from '../game/rules';
 
 export interface GameBoardProps {
   state: GameState;
@@ -30,27 +27,6 @@ function parseDroppableId(id: string): DropTarget | null {
   return { pileType, index };
 }
 
-function findTargetElement(target: DropTarget): Element | null {
-  const selector = `[data-${target.pileType}-index="${target.index}"]`;
-  return document.querySelector(selector);
-}
-
-function findCardElement(cardId: string): Element | null {
-  return document.querySelector(`[data-card-id="${cardId}"]`);
-}
-
-function findAutoMoveTarget(state: GameState, card: CardData): DropTarget | null {
-  for (let i = 0; i < state.foundations.length; i++) {
-    const foundation = state.foundations[i];
-    const foundationTop =
-      foundation.cards.length > 0 ? foundation.cards[foundation.cards.length - 1] : null;
-    if (canMoveToFoundation(card, foundationTop)) {
-      return { pileType: 'foundation', index: i };
-    }
-  }
-  return null;
-}
-
 function GameBoardInner({
   state,
   move = () => {},
@@ -60,45 +36,6 @@ function GameBoardInner({
   className,
 }: GameBoardProps) {
   const { stock, waste, foundations, tableau, selectedCardId } = state;
-  const { startMoveAnimation } = useMoveAnimation();
-
-  const moveWithAnimation = (moveObj: Move) => {
-    if (!('cardId' in moveObj)) {
-      move(moveObj);
-      return;
-    }
-
-    const card = findCardById(state, moveObj.cardId);
-    if (card !== null) {
-      const sourceEl = findCardElement(moveObj.cardId);
-      let targetEl: Element | null = null;
-
-      if ('toPile' in moveObj) {
-        const target: DropTarget = {
-          pileType: moveObj.toPile,
-          index: moveObj.toIndex,
-        };
-        targetEl = findTargetElement(target);
-      }
-
-      if (sourceEl !== null && targetEl !== null) {
-        startMoveAnimation(card, sourceEl, targetEl);
-      }
-    }
-    move(moveObj);
-  };
-
-  const autoMoveWithAnimation = (card: CardData) => {
-    const target = findAutoMoveTarget(state, card);
-    if (target !== null) {
-      const sourceEl = findCardElement(card.id);
-      const targetEl = findTargetElement(target);
-      if (sourceEl !== null && targetEl !== null) {
-        startMoveAnimation(card, sourceEl, targetEl);
-      }
-    }
-    autoMove(card);
-  };
 
   const {
     activeCard,
@@ -110,7 +47,7 @@ function GameBoardInner({
     handleCardClick,
     handleTargetClick,
     handleCardDoubleClick,
-  } = useDragMove(state, moveWithAnimation, selectCard, autoMoveWithAnimation);
+  } = useDragMove(state, move, selectCard, autoMove);
 
   const handleDragStartEvent = (event: DragStartEvent) => {
     handleDragStart(event.active.id as string);
@@ -225,11 +162,7 @@ function GameBoardInner({
 }
 
 export function GameBoard(props: GameBoardProps) {
-  return (
-    <MoveAnimatorProvider>
-      <GameBoardInner {...props} />
-    </MoveAnimatorProvider>
-  );
+  return <GameBoardInner {...props} />;
 }
 
 export default GameBoard;

@@ -527,28 +527,12 @@ test.describe('Usability friction — play-through', () => {
     }
     await page.mouse.up();
 
-    // Check for animation overlay
-    const overlay = page.getByTestId('move-animation-overlay');
-
-    // Wait for animation to complete
-    await page.waitForTimeout(500);
-
-    // Overlay should be gone after animation
-    const overlayCount = await overlay.count();
-    if (overlayCount > 0) {
-      friction.add(
-        'animation',
-        'Move animation overlay was not removed after transition',
-        'medium'
-      );
-    }
-
     // Card should be in the foundation
     const foundationAfter = page.getByLabel('Foundation pile 1');
     const foundationCard = foundationAfter.locator('button[aria-label$="card"]');
     const count = await foundationCard.count();
     if (count !== 1) {
-      friction.add('animation', 'Card was not moved to foundation after animation', 'high');
+      friction.add('animation', 'Card was not moved to foundation after drag', 'high');
     }
   });
 
