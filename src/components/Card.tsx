@@ -40,7 +40,7 @@ export function Card({
   const isRed = card.color === 'red';
 
   const baseClasses =
-    'relative aspect-[7/10] w-full max-w-[240px] rounded-xl border-2 border-white shadow-xl select-none transition-all duration-200 ease-out sm:max-w-[180px]';
+    'relative aspect-[7/10] w-full max-w-[200px] rounded-xl border-2 border-white shadow-xl select-none transition-all duration-200 ease-out sm:max-w-[150px]';
 
   const faceUpClasses = isRed ? 'bg-white text-red-600' : 'bg-white text-slate-900';
 

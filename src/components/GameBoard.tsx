@@ -150,7 +150,7 @@ function GameBoardInner({
     >
       <section
         aria-label="Klondike Solitaire board"
-        className={clsx('game-board flex w-full flex-col gap-2 p-2', 'sm:gap-3 sm:p-4', className)}
+        className={clsx('game-board flex w-full flex-col gap-6 p-2', 'sm:gap-8 sm:p-4', className)}
       >
         <div className="flex items-start justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2 sm:gap-3">
